@@ -1235,11 +1235,18 @@
                                 </div>
                             `).join('')}
                         </div>
-                        <label class="upload-btn">
-                            📷 Lägg till bilder
-                            <input type="file" accept="image/*" multiple style="display:none" 
-                                onchange="laddaBilder('${p.firebaseId}', this.files)">
-                        </label>
+                        <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
+                            <label class="upload-btn">
+                                📁 Välj bilder
+                                <input type="file" accept="image/*" multiple style="display:none" 
+                                    onchange="laddaBilder('${p.firebaseId}', this.files)">
+                            </label>
+                            <label class="upload-btn" style="background: #ff9800;">
+                                📸 Ta foto
+                                <input type="file" accept="image/*" capture="environment" style="display:none" 
+                                    onchange="laddaBilder('${p.firebaseId}', this.files)">
+                            </label>
+                        </div>
                     </div>
                     <div class="field">
                         <label>Anteckningar</label>
