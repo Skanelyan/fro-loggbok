@@ -394,6 +394,9 @@
             
             <div class="controls">
                 <input type="text" id="searchBox" placeholder="🔍 Sök efter växt, sort eller anteckningar...">
+                <select id="yearFilter" onchange="visa()" style="padding: 12px; border: 2px solid #4caf50; border-radius: 5px; font-size: 16px;">
+                    <option value="">Alla år</option>
+                </select>
                 <button class="btn btn-primary" onclick="nyPost()">➕ Ny Sådd</button>
                 <button class="btn btn-secondary" onclick="laddaData()">🔄 Ladda om</button>
                 <button class="btn btn-warning" onclick="exporteraCSV()">📥 Exportera CSV</button>
@@ -401,6 +404,15 @@
                     📤 Importera
                     <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="importeraFil(this.files[0])">
                 </label>
+                <button class="btn btn-secondary" onclick="visaPaminnelser()">🔔 Påminnelser</button>
+            </div>
+            
+            <div id="paminnelserSection" style="display: none; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                    <h3 style="margin: 0;">🔔 Kommande påminnelser</h3>
+                    <button class="btn btn-secondary" onclick="doljPaminnelser()" style="padding: 6px 12px;">Stäng</button>
+                </div>
+                <div id="paminnelserLista"></div>
             </div>
             
             <div id="container"></div>
@@ -714,6 +726,9 @@
                 rekSadd: '',
                 rekSkord: '',
                 omskolning: '',
+                paminnelse: '',
+                paminnelseText: '',
+                ar: new Date().getFullYear(),
                 anteckningar: '',
                 bilder: [],
                 skapad: new Date().toISOString()
@@ -800,6 +815,90 @@
             }
         };
         
+        window.visaPaminnelser = function() {
+            const idag = new Date();
+            idag.setHours(0, 0, 0, 0);
+            
+            const kommandePaminnelser = data
+                .filter(p => p.paminnelse)
+                .map(p => {
+                    const paminnelseDatum = new Date(p.paminnelse);
+                    paminnelseDatum.setHours(0, 0, 0, 0);
+                    const dagarKvar = Math.ceil((paminnelseDatum - idag) / (1000 * 60 * 60 * 24));
+                    return { ...p, paminnelseDatum, dagarKvar };
+                })
+                .filter(p => p.dagarKvar >= -7) // Visa även 7 dagar bakåt
+                .sort((a, b) => a.dagarKvar - b.dagarKvar);
+            
+            const lista = document.getElementById('paminnelserLista');
+            
+            if (kommandePaminnelser.length === 0) {
+                lista.innerHTML = '<p style="color: #666;">Inga aktiva påminnelser. Lägg till datum och text i "Påminnelse"-fälten på dina växter!</p>';
+            } else {
+                lista.innerHTML = kommandePaminnelser.map(p => {
+                    let dagText = '';
+                    let style = '';
+                    
+                    if (p.dagarKvar < 0) {
+                        dagText = `${Math.abs(p.dagarKvar)} dagar sedan`;
+                        style = 'background: #ffebee; border-left: 4px solid #f44336;';
+                    } else if (p.dagarKvar === 0) {
+                        dagText = 'IDAG!';
+                        style = 'background: #fff9c4; border-left: 4px solid #ff9800; font-weight: bold;';
+                    } else if (p.dagarKvar === 1) {
+                        dagText = 'Imorgon';
+                        style = 'background: #e1f5fe; border-left: 4px solid #2196F3;';
+                    } else if (p.dagarKvar <= 7) {
+                        dagText = `Om ${p.dagarKvar} dagar`;
+                        style = 'background: #e8f5e9; border-left: 4px solid #4caf50;';
+                    } else {
+                        dagText = `Om ${p.dagarKvar} dagar`;
+                        style = 'background: #f5f5f5; border-left: 4px solid #9e9e9e;';
+                    }
+                    
+                    return `
+                        <div style="padding: 12px; margin-bottom: 10px; border-radius: 5px; ${style}">
+                            <div style="display: flex; justify-content: space-between; align-items: start;">
+                                <div>
+                                    <strong>${p.vaxt || 'Växt'} ${p.sort ? '- ' + p.sort : ''}</strong>
+                                    <div style="margin-top: 5px; color: #555;">
+                                        🔔 ${p.paminnelseText || 'Påminnelse'}
+                                    </div>
+                                    <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
+                                        📅 ${p.paminnelse} (${dagText})
+                                    </div>
+                                </div>
+                                <button onclick="taBortPaminnelse('${p.firebaseId}')" style="background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">✓ Klar</button>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            }
+            
+            document.getElementById('paminnelserSection').style.display = 'block';
+            document.getElementById('paminnelserSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        };
+        
+        window.doljPaminnelser = function() {
+            document.getElementById('paminnelserSection').style.display = 'none';
+        };
+        
+        window.taBortPaminnelse = async function(firebaseId) {
+            if (confirm('Markera påminnelsen som klar?')) {
+                const post = data.find(p => p.firebaseId === firebaseId);
+                if (post && db) {
+                    post.paminnelse = '';
+                    post.paminnelseText = '';
+                    try {
+                        const { firebaseId: fid, ...updateData } = post;
+                        await updateDoc(doc(db, 'fron', firebaseId), updateData);
+                        visaPaminnelser(); // Uppdatera listan
+                    } catch (error) {
+                        console.error('Fel vid borttagning av påminnelse:', error);
+                    }
+                }
+            }
+        };
         window.visaBild = function(src) {
             document.getElementById('modalImg').src = src;
             document.getElementById('modal').classList.add('show');
@@ -1139,11 +1238,27 @@
         
         function visa() {
             const sok = (document.getElementById('searchBox')?.value || '').toLowerCase();
-            const filtrerad = data.filter(p => 
+            const selectedYear = document.getElementById('yearFilter')?.value;
+            
+            let filtrerad = data.filter(p => 
                 (p.vaxt || '').toLowerCase().includes(sok) ||
                 (p.sort || '').toLowerCase().includes(sok) ||
                 (p.anteckningar || '').toLowerCase().includes(sok)
             );
+            
+            // Filtrera på år om valt
+            if (selectedYear) {
+                filtrerad = filtrerad.filter(p => String(p.ar) === selectedYear);
+            }
+            
+            // Uppdatera årsfilter med tillgängliga år
+            const ar = [...new Set(data.map(p => p.ar || new Date().getFullYear()))].sort((a, b) => b - a);
+            const yearFilter = document.getElementById('yearFilter');
+            if (yearFilter) {
+                const currentValue = yearFilter.value;
+                yearFilter.innerHTML = '<option value="">Alla år</option>' + 
+                    ar.map(y => `<option value="${y}" ${currentValue === String(y) ? 'selected' : ''}>${y}</option>`).join('');
+            }
             
             const container = document.getElementById('container');
             if (!container) return;
@@ -1223,6 +1338,18 @@
                         <div class="field">
                             <label>Omskolning (datum)</label>
                             <input type="date" value="${p.omskolning || ''}" onchange="uppdatera('${p.firebaseId}', 'omskolning', this.value)">
+                        </div>
+                        <div class="field">
+                            <label>Påminnelse</label>
+                            <input type="date" value="${p.paminnelse || ''}" onchange="uppdatera('${p.firebaseId}', 'paminnelse', this.value)" placeholder="Välj datum för påminnelse">
+                        </div>
+                        <div class="field">
+                            <label>Påminnelse-text</label>
+                            <input value="${p.paminnelseText || ''}" onchange="uppdatera('${p.firebaseId}', 'paminnelseText', this.value)" placeholder="t.ex. Dags att plantera ut">
+                        </div>
+                        <div class="field">
+                            <label>Odlingssäsong (år)</label>
+                            <input type="number" value="${p.ar || new Date().getFullYear()}" onchange="uppdatera('${p.firebaseId}', 'ar', this.value)" placeholder="${new Date().getFullYear()}">
                         </div>
                     </div>
                     <div class="images">
