@@ -606,6 +606,9 @@
                             if (data.length > previousCount) {
                                 window.scrollTo({ top: 0, behavior: 'smooth' });
                             }
+                            
+                            // Kolla påminnelser när data laddats
+                            kollaPaminnelserVidStart();
                         }, (error) => {
                             console.error('❌ Fel i realtidslyssnare:', error);
                             if (error.code === 'permission-denied') {
@@ -897,6 +900,104 @@
                         console.error('Fel vid borttagning av påminnelse:', error);
                     }
                 }
+            }
+        };
+        
+        function kollaPaminnelserVidStart() {
+            const idag = new Date();
+            idag.setHours(0, 0, 0, 0);
+            
+            // Kolla om vi redan visat notifikation idag
+            const senastVisad = localStorage.getItem('senastVisadPaminnelse');
+            const idagStr = idag.toISOString().split('T')[0];
+            
+            if (senastVisad === idagStr) {
+                console.log('Påminnelser redan visade idag');
+                return;
+            }
+            
+            const idagsPaminnelser = data
+                .filter(p => p.paminnelse === idagStr)
+                .map(p => ({
+                    vaxt: p.vaxt || 'Växt',
+                    sort: p.sort || '',
+                    text: p.paminnelseText || 'Påminnelse',
+                    firebaseId: p.firebaseId
+                }));
+            
+            if (idagsPaminnelser.length > 0) {
+                // Visa notifikation
+                visaPaminnelseNotifikation(idagsPaminnelser);
+                
+                // Spara att vi visat notifikation idag
+                localStorage.setItem('senastVisadPaminnelse', idagStr);
+            }
+        }
+        
+        function visaPaminnelseNotifikation(paminnelser) {
+            const meddelande = paminnelser.map(p => 
+                `🌱 ${p.vaxt}${p.sort ? ' - ' + p.sort : ''}\n   📝 ${p.text}`
+            ).join('\n\n');
+            
+            // Skapa en vacker notifikationsruta
+            const notisDiv = document.createElement('div');
+            notisDiv.id = 'paminnelseNotis';
+            notisDiv.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                max-width: 400px;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                padding: 20px;
+                border-radius: 15px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+                z-index: 10000;
+                animation: slideIn 0.5s ease;
+            `;
+            
+            notisDiv.innerHTML = `
+                <style>
+                    @keyframes slideIn {
+                        from { transform: translateX(400px); opacity: 0; }
+                        to { transform: translateX(0); opacity: 1; }
+                    }
+                </style>
+                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
+                    <h3 style="margin: 0; font-size: 1.3em;">🔔 Påminnelser för idag!</h3>
+                    <button onclick="stangNotis()" style="background: rgba(255,255,255,0.3); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2em; font-weight: bold;">×</button>
+                </div>
+                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
+                    ${paminnelser.map(p => `
+                        <div style="background: rgba(255,255,255,0.9); color: #333; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
+                            <strong style="color: #2d5016;">🌱 ${p.vaxt}${p.sort ? ' - ' + p.sort : ''}</strong><br>
+                            <span style="color: #666;">📝 ${p.text}</span>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button onclick="visaPaminnelser(); stangNotis();" style="flex: 1; background: white; color: #667eea; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">Visa alla</button>
+                    <button onclick="stangNotis()" style="flex: 1; background: rgba(255,255,255,0.3); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">Stäng</button>
+                </div>
+            `;
+            
+            document.body.appendChild(notisDiv);
+            
+            // Spela ljud (valfritt)
+            try {
+                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHGGS37OihUBELTKXh8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHg==');
+                audio.volume = 0.3;
+                audio.play().catch(e => console.log('Ljud kunde inte spelas'));
+            } catch (e) {
+                // Ignore audio errors
+            }
+        }
+        
+        window.stangNotis = function() {
+            const notis = document.getElementById('paminnelseNotis');
+            if (notis) {
+                notis.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notis.remove(), 300);
             }
         };
         window.visaBild = function(src) {
