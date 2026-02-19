@@ -608,7 +608,10 @@
                             }
                             
                             // Kolla påminnelser när data laddats
-                            kollaPaminnelserVidStart();
+                            setTimeout(() => {
+                                console.log('⏰ Timer körs - kollar påminnelser');
+                                window.kollaPaminnelserVidStart();
+                            }, 1000);
                         }, (error) => {
                             console.error('❌ Fel i realtidslyssnare:', error);
                             if (error.code === 'permission-denied') {
@@ -699,6 +702,12 @@
                 
                 visa();
                 console.log('✅ Laddade ' + data.length + ' poster');
+                
+                // Kolla påminnelser EFTER data laddats
+                setTimeout(() => {
+                    console.log('⏰ Timer från laddaData körs');
+                    window.kollaPaminnelserVidStart();
+                }, 1000);
             } catch (error) {
                 console.error('Fel vid laddning:', error);
             }
@@ -903,18 +912,31 @@
             }
         };
         
-        function kollaPaminnelserVidStart() {
+        window.kollaPaminnelserVidStart = function() {
+            console.log('🔍 Kollar påminnelser vid start...');
+            console.log('📊 Antal poster i data:', data.length);
+            
             const idag = new Date();
             idag.setHours(0, 0, 0, 0);
+            const idagStr = idag.toISOString().split('T')[0];
+            
+            console.log('📅 Dagens datum:', idagStr);
             
             // Kolla om vi redan visat notifikation idag
             const senastVisad = localStorage.getItem('senastVisadPaminnelse');
-            const idagStr = idag.toISOString().split('T')[0];
+            console.log('💾 Senast visad påminnelse:', senastVisad);
             
             if (senastVisad === idagStr) {
-                console.log('Påminnelser redan visade idag');
+                console.log('✅ Påminnelser redan visade idag - hoppar över');
                 return;
             }
+            
+            // Logga alla påminnelser för debugging
+            const allaPaminnelser = data.filter(p => p.paminnelse);
+            console.log('📋 Alla poster med påminnelser:', allaPaminnelser.map(p => ({
+                vaxt: p.vaxt,
+                datum: p.paminnelse
+            })));
             
             const idagsPaminnelser = data
                 .filter(p => p.paminnelse === idagStr)
@@ -925,14 +947,19 @@
                     firebaseId: p.firebaseId
                 }));
             
+            console.log('🔔 Påminnelser för idag:', idagsPaminnelser);
+            
             if (idagsPaminnelser.length > 0) {
+                console.log('✅ Visar notifikation för', idagsPaminnelser.length, 'påminnelser');
                 // Visa notifikation
                 visaPaminnelseNotifikation(idagsPaminnelser);
                 
                 // Spara att vi visat notifikation idag
                 localStorage.setItem('senastVisadPaminnelse', idagStr);
+            } else {
+                console.log('📭 Inga påminnelser för idag');
             }
-        }
+        };
         
         function visaPaminnelseNotifikation(paminnelser) {
             const meddelande = paminnelser.map(p => 
