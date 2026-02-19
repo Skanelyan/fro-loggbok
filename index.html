@@ -917,10 +917,14 @@
             console.log('📊 Antal poster i data:', data.length);
             
             const idag = new Date();
-            idag.setHours(0, 0, 0, 0);
-            const idagStr = idag.toISOString().split('T')[0];
+            // Använd lokal tid istället för UTC
+            const year = idag.getFullYear();
+            const month = String(idag.getMonth() + 1).padStart(2, '0');
+            const day = String(idag.getDate()).padStart(2, '0');
+            const idagStr = `${year}-${month}-${day}`;
             
-            console.log('📅 Dagens datum:', idagStr);
+            console.log('📅 Dagens datum (lokal tid):', idagStr);
+            console.log('📅 Dagens datum (ISO):', idag.toISOString().split('T')[0]);
             
             // Kolla om vi redan visat notifikation idag
             const senastVisad = localStorage.getItem('senastVisadPaminnelse');
