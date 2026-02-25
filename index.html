@@ -61,6 +61,12 @@
                 <p id="status">Ansluten!</p>
                 <button class="btn" onclick="laddaData()" style="margin-top: 10px;">Ladda data</button>
             </div>
+            
+            <div id="breadcrumb" style="display: none; background: white; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                <span onclick="visaVaxtlista()" style="cursor: pointer; color: #4caf50; font-weight: bold;">🏠 Hem</span>
+                <span id="breadcrumbPath" style="color: #666;"></span>
+            </div>
+            
             <div id="container"></div>
         </div>
     </div>
@@ -73,6 +79,9 @@
         let db = null;
         let auth = null;
         let data = [];
+        let currentView = 'vaxtlista'; // 'vaxtlista', 'sortlista', 'detaljer'
+        let selectedVaxt = null;
+        let selectedSort = null;
         
         window.sparaConfig = function() {
             console.log('sparaConfig körs');
@@ -109,13 +118,18 @@
                 });
                 
                 document.getElementById('status').textContent = 'Laddade ' + data.length + ' poster';
-                visaData();
+                visaVaxtlista();
             } catch (error) {
                 alert('Fel: ' + error.message);
             }
         };
         
-        function visaData() {
+        window.visaVaxtlista = function() {
+            currentView = 'vaxtlista';
+            selectedVaxt = null;
+            selectedSort = null;
+            document.getElementById('breadcrumb').style.display = 'none';
+            
             const container = document.getElementById('container');
             
             if (data.length === 0) {
@@ -126,16 +140,89 @@
             // Gruppera på växt
             const vaxter = {};
             data.forEach(p => {
-                const vaxt = p.vaxt || 'Okänd';
+                const vaxt = p.vaxt || 'Okänd växt';
                 if (!vaxter[vaxt]) vaxter[vaxt] = [];
                 vaxter[vaxt].push(p);
             });
             
             container.innerHTML = Object.keys(vaxter).sort().map(vaxt => {
                 const poster = vaxter[vaxt];
-                return '<div class="card"><h2>' + vaxt + '</h2><p>' + poster.length + ' sådder</p></div>';
+                const antalSorter = new Set(poster.map(p => p.sort || 'Ingen sort')).size;
+                return `
+                    <div class="card" onclick="visaSortlista('${vaxt}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2 style="color: #2d5016; margin-bottom: 5px;">🌱 ${vaxt}</h2>
+                                <p style="color: #666;">${antalSorter} ${antalSorter === 1 ? 'sort' : 'sorter'} • ${poster.length} ${poster.length === 1 ? 'sådd' : 'sådder'}</p>
+                            </div>
+                            <div style="font-size: 2em; color: #4caf50;">→</div>
+                        </div>
+                    </div>
+                `;
             }).join('');
-        }
+        };
+        
+        window.visaSortlista = function(vaxt) {
+            currentView = 'sortlista';
+            selectedVaxt = vaxt;
+            selectedSort = null;
+            
+            document.getElementById('breadcrumb').style.display = 'block';
+            document.getElementById('breadcrumbPath').textContent = ' → ' + vaxt;
+            
+            const container = document.getElementById('container');
+            const filtrerad = data.filter(p => p.vaxt === vaxt);
+            
+            // Gruppera på sort
+            const sorter = {};
+            filtrerad.forEach(p => {
+                const sort = p.sort || 'Ingen sort';
+                if (!sorter[sort]) sorter[sort] = [];
+                sorter[sort].push(p);
+            });
+            
+            container.innerHTML = Object.keys(sorter).sort().map(sort => {
+                const poster = sorter[sort];
+                return `
+                    <div class="card" onclick="visaDetaljer('${vaxt}', '${sort.replace(/'/g, "\\'")}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="color: #2d5016; margin-bottom: 5px;">${sort}</h3>
+                                <p style="color: #666;">${poster.length} ${poster.length === 1 ? 'sådd' : 'sådder'}</p>
+                            </div>
+                            <div style="font-size: 2em; color: #4caf50;">→</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+        
+        window.visaDetaljer = function(vaxt, sort) {
+            currentView = 'detaljer';
+            selectedVaxt = vaxt;
+            selectedSort = sort;
+            
+            document.getElementById('breadcrumb').style.display = 'block';
+            document.getElementById('breadcrumbPath').textContent = ' → ' + vaxt + ' → ' + sort;
+            
+            const container = document.getElementById('container');
+            const filtrerad = data.filter(p => p.vaxt === vaxt && p.sort === sort);
+            
+            if (filtrerad.length === 0) {
+                container.innerHTML = '<div style="background: white; padding: 40px; border-radius: 10px; text-align: center;"><h2>Ingen data</h2></div>';
+                return;
+            }
+            
+            container.innerHTML = filtrerad.map(p => `
+                <div style="background: white; padding: 25px; margin-bottom: 20px; border-radius: 10px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    <h3 style="color: #2d5016; margin-bottom: 15px;">${p.vaxt || 'Växt'} - ${p.sort || 'Sort'}</h3>
+                    <p><strong>Datum sådd:</strong> ${p.saddDatum || 'Ej angivet'}</p>
+                    <p><strong>År:</strong> ${p.ar || 'Ej angivet'}</p>
+                    <p><strong>Plats:</strong> ${p.plats || 'Ej angivet'}</p>
+                    ${p.anteckningar ? '<p><strong>Anteckningar:</strong> ' + p.anteckningar + '</p>' : ''}
+                </div>
+            `).join('');
+        };
         
         function initFirebase(config) {
             try {
