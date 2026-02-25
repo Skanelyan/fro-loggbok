@@ -449,7 +449,9 @@
         let selectedVaxt = null;
         let selectedSort = null;
         
+        // Definiera globala funktioner direkt
         window.sparaConfig = function() {
+            console.log('💾 sparaConfig kallad');
             const config = {
                 apiKey: document.getElementById('apiKey').value.trim(),
                 authDomain: document.getElementById('authDomain').value.trim(),
@@ -459,14 +461,18 @@
                 appId: document.getElementById('appId').value.trim()
             };
             
+            console.log('📝 Config:', config);
+            
             if (!config.apiKey || !config.projectId) {
                 alert('Fyll i åtminstone API Key och Project ID!');
                 return;
             }
             
             localStorage.setItem('firebaseConfig', JSON.stringify(config));
+            console.log('✅ Config sparad i localStorage');
             initFirebase(config);
         };
+        
         
         window.visaQRKod = async function() {
             const config = {
