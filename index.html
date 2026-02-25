@@ -21,26 +21,6 @@
             margin-bottom: 20px;
         }
         h1 { color: #2d5016; text-align: center; margin-bottom: 10px; }
-        .success {
-            background: #d4edda;
-            color: #155724;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-        }
-        .controls {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        #searchBox, #yearFilter {
-            padding: 12px;
-            border: 2px solid #4caf50;
-            border-radius: 5px;
-            font-size: 16px;
-        }
-        #searchBox { flex: 1; min-width: 250px; }
         .btn {
             padding: 12px 24px;
             border: none;
@@ -48,13 +28,10 @@
             cursor: pointer;
             font-size: 16px;
             font-weight: 600;
-            transition: all 0.3s;
+            background: #4caf50;
+            color: white;
         }
-        .btn-primary { background: #4caf50; color: white; }
-        .btn-primary:hover { background: #45a049; }
-        .btn-secondary { background: #2196F3; color: white; }
-        .btn-warning { background: #ff9800; color: white; }
-        .btn-delete { background: #f44336; color: white; padding: 8px 15px; font-size: 14px; }
+        .btn:hover { background: #45a049; }
         .card {
             background: white;
             padding: 25px;
@@ -62,294 +39,102 @@
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
             cursor: pointer;
-            transition: transform 0.2s;
         }
         .card:hover { transform: translateY(-2px); }
-        .breadcrumb {
-            background: white;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .breadcrumb span { cursor: pointer; color: #666; }
-        .breadcrumb span:hover { color: #4caf50; }
-        .empty {
-            text-align: center;
-            padding: 60px 20px;
-            background: white;
-            border-radius: 10px;
-        }
-        #appContent { display: none; }
-        #loginSection { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
         <div class="header">
             <h1>🌱 Frö- och Såddloggbok</h1>
-            <p style="text-align: center; color: #666;">Laddar...</p>
         </div>
         
-        <div id="setupSection" style="display: none;">
-            <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
-                <h3>Firebase Setup</h3>
-                <p>Denna app kräver Firebase. Fyll i din konfiguration nedan.</p>
-            </div>
-            <div style="background: white; padding: 20px; border-radius: 10px;">
-                <input type="text" id="apiKey" placeholder="API Key" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
-                <input type="text" id="projectId" placeholder="Project ID" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
-                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="window.sparaConfig()">Spara & Anslut</button>
-            </div>
+        <div id="setupSection" style="background: white; padding: 30px; border-radius: 10px;">
+            <h2 style="margin-bottom: 20px;">Firebase Setup</h2>
+            <input type="text" id="apiKey" placeholder="API Key" style="width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px;">
+            <input type="text" id="projectId" placeholder="Project ID" style="width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px;">
+            <button class="btn" onclick="sparaConfig()" style="width: 100%; margin-top: 10px;">Spara & Anslut</button>
         </div>
         
-        <div id="loginSection">
-            <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; margin: 0 auto;">
-                <h2 style="margin-bottom: 20px;">🔐 Logga in</h2>
-                <input type="email" id="loginEmail" placeholder="Email" style="width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px;">
-                <input type="password" id="loginPassword" placeholder="Lösenord" style="width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px;">
-                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="window.loggaIn()">Logga in</button>
-                <div id="loginError" style="color: #f44336; margin-top: 10px; display: none;"></div>
+        <div id="appContent" style="display: none;">
+            <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <p id="status">Ansluten!</p>
+                <button class="btn" onclick="laddaData()" style="margin-top: 10px;">Ladda data</button>
             </div>
-        </div>
-        
-        <div id="appContent">
-            <div class="success">
-                <strong>✅ Ansluten!</strong> Inloggad som: <span id="userEmail"></span>
-                <button class="btn btn-delete" onclick="window.loggaUt()" style="float: right; padding: 6px 12px;">Logga ut</button>
-                <div style="clear: both;"></div>
-            </div>
-            
-            <div class="controls">
-                <input type="text" id="searchBox" placeholder="🔍 Sök...">
-                <select id="yearFilter" onchange="window.visa()">
-                    <option value="">Alla år</option>
-                </select>
-                <button class="btn btn-primary" onclick="window.nyPost()">➕ Ny Sådd</button>
-                <button class="btn btn-secondary" onclick="window.laddaData()">🔄 Ladda om</button>
-            </div>
-            
-            <div id="breadcrumb" style="display: none;" class="breadcrumb">
-                <span onclick="window.visaVaxtlista()">🏠 Hem</span>
-                <span id="breadcrumbPath"></span>
-            </div>
-            
             <div id="container"></div>
         </div>
     </div>
 
     <script type="module">
         import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-        import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+        import { getFirestore, collection, getDocs } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
-        let db, auth, data = [], currentUser = null;
-        let currentView = 'vaxtlista', selectedVaxt = null, selectedSort = null;
+        let db = null;
+        let auth = null;
+        let data = [];
         
-        // Globala funktioner
         window.sparaConfig = function() {
-            const config = {
-                apiKey: document.getElementById('apiKey').value.trim(),
-                projectId: document.getElementById('projectId').value.trim(),
-                authDomain: `${document.getElementById('projectId').value.trim()}.firebaseapp.com`,
-                storageBucket: `${document.getElementById('projectId').value.trim()}.appspot.com`,
-                messagingSenderId: '123456789',
-                appId: '1:123456789:web:abc123'
-            };
+            console.log('sparaConfig körs');
+            const apiKey = document.getElementById('apiKey').value.trim();
+            const projectId = document.getElementById('projectId').value.trim();
             
-            if (!config.apiKey || !config.projectId) {
-                alert('Fyll i API Key och Project ID!');
+            if (!apiKey || !projectId) {
+                alert('Fyll i både API Key och Project ID!');
                 return;
             }
+            
+            const config = {
+                apiKey: apiKey,
+                projectId: projectId,
+                authDomain: projectId + '.firebaseapp.com',
+                storageBucket: projectId + '.appspot.com'
+            };
             
             localStorage.setItem('firebaseConfig', JSON.stringify(config));
             initFirebase(config);
         };
         
-        window.loggaIn = async function() {
-            const email = document.getElementById('loginEmail').value;
-            const password = document.getElementById('loginPassword').value;
-            try {
-                await signInWithEmailAndPassword(auth, email, password);
-            } catch (error) {
-                document.getElementById('loginError').textContent = 'Fel email eller lösenord';
-                document.getElementById('loginError').style.display = 'block';
-            }
-        };
-        
-        window.loggaUt = async function() {
-            if (confirm('Logga ut?')) await signOut(auth);
-        };
-        
-        window.nyPost = async function() {
-            if (!db) return;
-            const post = {
-                id: Date.now(),
-                vaxt: '', sort: '', saddDatum: '', ar: new Date().getFullYear(),
-                bilder: [], skapad: new Date().toISOString()
-            };
-            await addDoc(collection(db, 'fron'), post);
-            currentView = 'detalj';
-        };
-        
         window.laddaData = async function() {
-            if (!db) return;
-            const snapshot = await getDocs(collection(db, 'fron'));
-            data = [];
-            snapshot.forEach(doc => data.push({ firebaseId: doc.id, ...doc.data() }));
-            data.sort((a, b) => new Date(b.skapad || 0) - new Date(a.skapad || 0));
-            window.visa();
-        };
-        
-        window.visa = function() {
-            const sok = document.getElementById('searchBox')?.value.toLowerCase() || '';
-            const year = document.getElementById('yearFilter')?.value;
-            
-            let filtrerad = data.filter(p => 
-                (p.vaxt || '').toLowerCase().includes(sok) ||
-                (p.sort || '').toLowerCase().includes(sok)
-            );
-            
-            if (year) filtrerad = filtrerad.filter(p => String(p.ar) === year);
-            
-            // Uppdatera årsfilter
-            const ar = [...new Set(data.map(p => p.ar || new Date().getFullYear()))].sort((a, b) => b - a);
-            const yearFilter = document.getElementById('yearFilter');
-            if (yearFilter) {
-                const current = yearFilter.value;
-                yearFilter.innerHTML = '<option value="">Alla år</option>' + 
-                    ar.map(y => `<option value="${y}" ${current === String(y) ? 'selected' : ''}>${y}</option>`).join('');
+            if (!db) {
+                alert('Firebase inte anslutet!');
+                return;
             }
             
-            if (sok) {
-                visaDetaljer(filtrerad);
-            } else if (currentView === 'vaxtlista') {
-                visaVaxtlista(filtrerad);
-            } else if (currentView === 'sortlista') {
-                visaSortlista(filtrerad);
-            } else {
-                visaDetaljer(filtrerad);
+            try {
+                const snapshot = await getDocs(collection(db, 'fron'));
+                data = [];
+                snapshot.forEach(doc => {
+                    data.push({ id: doc.id, ...doc.data() });
+                });
+                
+                document.getElementById('status').textContent = 'Laddade ' + data.length + ' poster';
+                visaData();
+            } catch (error) {
+                alert('Fel: ' + error.message);
             }
         };
         
-        window.visaVaxtlista = function() {
-            currentView = 'vaxtlista';
-            selectedVaxt = null;
-            document.getElementById('breadcrumb').style.display = 'none';
+        function visaData() {
+            const container = document.getElementById('container');
             
-            const year = document.getElementById('yearFilter')?.value;
-            let filtrerad = year ? data.filter(p => String(p.ar) === year) : data;
+            if (data.length === 0) {
+                container.innerHTML = '<div style="background: white; padding: 40px; border-radius: 10px; text-align: center;"><h2>Ingen data</h2></div>';
+                return;
+            }
             
+            // Gruppera på växt
             const vaxter = {};
-            filtrerad.forEach(p => {
-                const v = p.vaxt || 'Okänd';
-                if (!vaxter[v]) vaxter[v] = [];
-                vaxter[v].push(p);
+            data.forEach(p => {
+                const vaxt = p.vaxt || 'Okänd';
+                if (!vaxter[vaxt]) vaxter[vaxt] = [];
+                vaxter[vaxt].push(p);
             });
             
-            const container = document.getElementById('container');
-            if (Object.keys(vaxter).length === 0) {
-                container.innerHTML = '<div class="empty"><h2>Ingen data</h2><p>Lägg till din första sådd!</p></div>';
-                return;
-            }
-            
-            container.innerHTML = Object.keys(vaxter).sort().map(v => {
-                const poster = vaxter[v];
-                const sorter = new Set(poster.map(p => p.sort)).size;
-                return `
-                    <div class="card" onclick="window.visaSortlistaFor('${v}')">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h2 style="color: #2d5016;">🌱 ${v}</h2>
-                                <p style="color: #666;">${sorter} ${sorter === 1 ? 'sort' : 'sorter'} • ${poster.length} ${poster.length === 1 ? 'sådd' : 'sådder'}</p>
-                            </div>
-                            <div style="font-size: 2em; color: #4caf50;">→</div>
-                        </div>
-                    </div>
-                `;
+            container.innerHTML = Object.keys(vaxter).sort().map(vaxt => {
+                const poster = vaxter[vaxt];
+                return '<div class="card"><h2>' + vaxt + '</h2><p>' + poster.length + ' sådder</p></div>';
             }).join('');
-        };
-        
-        window.visaSortlistaFor = function(vaxt) {
-            currentView = 'sortlista';
-            selectedVaxt = vaxt;
-            document.getElementById('breadcrumb').style.display = 'block';
-            document.getElementById('breadcrumbPath').textContent = ` → ${vaxt}`;
-            
-            const year = document.getElementById('yearFilter')?.value;
-            let filtrerad = data.filter(p => p.vaxt === vaxt);
-            if (year) filtrerad = filtrerad.filter(p => String(p.ar) === year);
-            
-            const sorter = {};
-            filtrerad.forEach(p => {
-                const s = p.sort || 'Ingen sort';
-                if (!sorter[s]) sorter[s] = [];
-                sorter[s].push(p);
-            });
-            
-            const container = document.getElementById('container');
-            container.innerHTML = Object.keys(sorter).sort().map(s => {
-                const poster = sorter[s];
-                return `
-                    <div class="card" onclick="window.visaDetaljFor('${vaxt}', '${s.replace(/'/g, "\\'")}')">
-                        <div style="display: flex; justify-content: space-between; align-items: center;">
-                            <div>
-                                <h3 style="color: #2d5016;">${s}</h3>
-                                <p style="color: #666;">${poster.length} ${poster.length === 1 ? 'sådd' : 'sådder'}</p>
-                            </div>
-                            <div style="font-size: 2em; color: #4caf50;">→</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-        };
-        
-        window.visaDetaljFor = function(vaxt, sort) {
-            currentView = 'detalj';
-            selectedVaxt = vaxt;
-            selectedSort = sort;
-            document.getElementById('breadcrumb').style.display = 'block';
-            document.getElementById('breadcrumbPath').textContent = ` → ${vaxt} → ${sort}`;
-            
-            const year = document.getElementById('yearFilter')?.value;
-            let filtrerad = data.filter(p => p.vaxt === vaxt && p.sort === sort);
-            if (year) filtrerad = filtrerad.filter(p => String(p.ar) === year);
-            
-            visaDetaljer(filtrerad);
-        };
-        
-        function visaDetaljer(filtrerad) {
-            const container = document.getElementById('container');
-            if (filtrerad.length === 0) {
-                container.innerHTML = '<div class="empty"><h2>Inga träffar</h2></div>';
-                return;
-            }
-            
-            container.innerHTML = filtrerad.map(p => `
-                <div style="background: white; padding: 25px; margin-bottom: 20px; border-radius: 10px;">
-                    <h3 style="color: #2d5016; margin-bottom: 15px;">${p.vaxt || 'Växt'} ${p.sort ? '- ' + p.sort : ''}</h3>
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
-                        <div>
-                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Växt</label>
-                            <input value="${p.vaxt || ''}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                        </div>
-                        <div>
-                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Sort</label>
-                            <input value="${p.sort || ''}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                        </div>
-                        <div>
-                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Datum sådd</label>
-                            <input type="date" value="${p.saddDatum || ''}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                        </div>
-                        <div>
-                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">År</label>
-                            <input type="number" value="${p.ar || new Date().getFullYear()}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
-                        </div>
-                    </div>
-                </div>
-            `).join('');
         }
         
         function initFirebase(config) {
@@ -358,27 +143,10 @@
                 db = getFirestore(app);
                 auth = getAuth(app);
                 
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        currentUser = user;
-                        document.getElementById('userEmail').textContent = user.email;
-                        document.getElementById('setupSection').style.display = 'none';
-                        document.getElementById('loginSection').style.display = 'none';
-                        document.getElementById('appContent').style.display = 'block';
-                        window.laddaData();
-                        
-                        onSnapshot(collection(db, 'fron'), (snapshot) => {
-                            data = [];
-                            snapshot.forEach(doc => data.push({ firebaseId: doc.id, ...doc.data() }));
-                            data.sort((a, b) => new Date(b.skapad || 0) - new Date(a.skapad || 0));
-                            window.visa();
-                        });
-                    } else {
-                        document.getElementById('setupSection').style.display = 'none';
-                        document.getElementById('loginSection').style.display = 'block';
-                        document.getElementById('appContent').style.display = 'none';
-                    }
-                });
+                document.getElementById('setupSection').style.display = 'none';
+                document.getElementById('appContent').style.display = 'block';
+                
+                window.laddaData();
             } catch (error) {
                 alert('Firebase-fel: ' + error.message);
             }
@@ -387,12 +155,15 @@
         // Starta
         const savedConfig = localStorage.getItem('firebaseConfig');
         if (savedConfig) {
-            initFirebase(JSON.parse(savedConfig));
-        } else {
-            document.getElementById('setupSection').style.display = 'block';
+            try {
+                const config = JSON.parse(savedConfig);
+                document.getElementById('apiKey').value = config.apiKey;
+                document.getElementById('projectId').value = config.projectId;
+                initFirebase(config);
+            } catch (e) {
+                console.error('Fel vid laddning av config:', e);
+            }
         }
-        
-        document.getElementById('searchBox')?.addEventListener('input', window.visa);
     </script>
 </body>
 </html>
