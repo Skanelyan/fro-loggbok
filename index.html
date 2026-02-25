@@ -3,86 +3,30 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frö- och Såddloggbok med Firebase</title>
+    <title>Frö- och Såddloggbok</title>
     <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
             font-family: Arial, sans-serif;
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 20px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-        }
-        .container {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
-        }
-        h1 {
-            color: #2d5016;
-            text-align: center;
-            margin-bottom: 10px;
-        }
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 20px;
-        }
-        .setup-box {
-            background: #fff3cd;
-            border: 2px solid #ffc107;
-            border-radius: 10px;
             padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
             margin-bottom: 20px;
         }
-        .setup-box h3 {
-            margin-top: 0;
-            color: #856404;
-        }
-        .setup-box ol {
-            margin-left: 20px;
-        }
-        .setup-box li {
-            margin-bottom: 10px;
-        }
-        .setup-box code {
-            background: #f8f9fa;
-            padding: 2px 6px;
-            border-radius: 3px;
-            font-family: monospace;
-            color: #d63384;
-        }
-        .config-box {
-            background: #f8f9fa;
-            border: 1px solid #dee2e6;
-            border-radius: 5px;
-            padding: 15px;
-            margin: 10px 0;
-        }
-        .config-input {
-            width: 100%;
-            padding: 8px;
-            margin: 5px 0;
-            border: 1px solid #ced4da;
-            border-radius: 4px;
-            font-family: monospace;
-            font-size: 14px;
-        }
-        .info {
-            background: #d1ecf1;
-            padding: 15px;
-            border-radius: 8px;
-            margin-bottom: 20px;
-            border-left: 4px solid #0c5460;
-        }
+        h1 { color: #2d5016; text-align: center; margin-bottom: 10px; }
         .success {
             background: #d4edda;
             color: #155724;
             padding: 15px;
             border-radius: 8px;
             margin-bottom: 20px;
-            border-left: 4px solid #28a745;
         }
         .controls {
             display: flex;
@@ -90,14 +34,13 @@
             margin-bottom: 20px;
             flex-wrap: wrap;
         }
-        #searchBox {
-            flex: 1;
-            min-width: 250px;
+        #searchBox, #yearFilter {
             padding: 12px;
             border: 2px solid #4caf50;
             border-radius: 5px;
             font-size: 16px;
         }
+        #searchBox { flex: 1; min-width: 250px; }
         .btn {
             padding: 12px 24px;
             border: none;
@@ -107,328 +50,94 @@
             font-weight: 600;
             transition: all 0.3s;
         }
-        .btn-primary {
-            background: #4caf50;
-            color: white;
-        }
-        .btn-primary:hover {
-            background: #45a049;
-        }
-        .btn-secondary {
-            background: #2196F3;
-            color: white;
-        }
-        .btn-warning {
-            background: #ff9800;
-            color: white;
-        }
-        .btn-delete {
-            background: #f44336;
-            color: white;
-            padding: 8px 15px;
-            font-size: 14px;
-        }
+        .btn-primary { background: #4caf50; color: white; }
+        .btn-primary:hover { background: #45a049; }
+        .btn-secondary { background: #2196F3; color: white; }
+        .btn-warning { background: #ff9800; color: white; }
+        .btn-delete { background: #f44336; color: white; padding: 8px 15px; font-size: 14px; }
         .card {
-            background: #fafafa;
+            background: white;
             padding: 25px;
             margin-bottom: 20px;
             border-radius: 10px;
             box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            cursor: pointer;
+            transition: transform 0.2s;
         }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #e0e0e0;
-        }
-        .card-title {
-            font-size: 1.4em;
-            font-weight: bold;
-            color: #2d5016;
-        }
-        .grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .field {
-            display: flex;
-            flex-direction: column;
-        }
-        label {
-            font-weight: 600;
-            margin-bottom: 5px;
-            color: #555;
-            font-size: 0.9em;
-        }
-        input, textarea {
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 5px;
-            font-size: 15px;
-        }
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: #4caf50;
-        }
-        input[readonly] {
-            background: #f5f5f5;
-        }
-        textarea {
-            min-height: 100px;
-            resize: vertical;
-        }
-        .images {
-            margin: 20px 0;
-            padding: 15px;
+        .card:hover { transform: translateY(-2px); }
+        .breadcrumb {
             background: white;
+            padding: 15px;
             border-radius: 8px;
-        }
-        .image-grid {
+            margin-bottom: 20px;
             display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        .img-wrap {
-            position: relative;
-            width: 100px;
-            height: 100px;
-        }
-        .img-wrap img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            border-radius: 5px;
-            cursor: pointer;
-            border: 2px solid #ddd;
-        }
-        .img-wrap button {
-            position: absolute;
-            top: -8px;
-            right: -8px;
-            width: 26px;
-            height: 26px;
-            border-radius: 50%;
-            border: none;
-            background: #f44336;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .upload-btn {
-            display: inline-block;
-            padding: 10px 20px;
-            background: #2196F3;
-            color: white;
-            border-radius: 5px;
-            cursor: pointer;
-            margin-top: 10px;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.9);
-            z-index: 1000;
-        }
-        .modal.show {
-            display: flex;
-            justify-content: center;
             align-items: center;
+            gap: 10px;
         }
-        .modal img {
-            max-width: 90%;
-            max-height: 90%;
-        }
-        .modal-close {
-            position: absolute;
-            top: 20px;
-            right: 40px;
-            color: white;
-            font-size: 50px;
-            cursor: pointer;
-        }
+        .breadcrumb span { cursor: pointer; color: #666; }
+        .breadcrumb span:hover { color: #4caf50; }
         .empty {
             text-align: center;
             padding: 60px 20px;
+            background: white;
+            border-radius: 10px;
         }
-        #appContent {
-            display: none;
-        }
+        #appContent { display: none; }
+        #loginSection { display: none; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>🌱 Min Frö- och Såddloggbok</h1>
-        <p class="subtitle">Med Firebase - Synkas automatiskt mellan alla enheter!</p>
+        <div class="header">
+            <h1>🌱 Frö- och Såddloggbok</h1>
+            <p style="text-align: center; color: #666;">Laddar...</p>
+        </div>
         
-        <div id="setupSection">
-            <div class="setup-box">
-                <h3>🔧 Firebase Setup - Följ dessa steg:</h3>
-                <ol>
-                    <li>Gå till <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
-                    <li>Klicka på <strong>"Add project"</strong> (Lägg till projekt)</li>
-                    <li>Namnge projektet: <code>fro-loggbok</code></li>
-                    <li>Inaktivera Google Analytics (behövs inte)</li>
-                    <li>Klicka <strong>"Create project"</strong></li>
-                    <li>När projektet är skapat, klicka på <strong>"Web"</strong> ikonen (&lt;/&gt;)</li>
-                    <li>Ge appen ett namn: <code>Frö-loggbok</code></li>
-                    <li>Kopiera konfigurationsobjektet (firebaseConfig)</li>
-                    <li>Klistra in värdena nedan:</li>
-                </ol>
+        <div id="setupSection" style="display: none;">
+            <div style="background: #fff3cd; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+                <h3>Firebase Setup</h3>
+                <p>Denna app kräver Firebase. Fyll i din konfiguration nedan.</p>
             </div>
-
-            <div class="config-box">
-                <h4>📋 Firebase Configuration:</h4>
-                <label>API Key:</label>
-                <input type="text" id="apiKey" class="config-input" placeholder="AIza...">
-                
-                <label>Auth Domain:</label>
-                <input type="text" id="authDomain" class="config-input" placeholder="fro-loggbok.firebaseapp.com">
-                
-                <label>Project ID:</label>
-                <input type="text" id="projectId" class="config-input" placeholder="fro-loggbok">
-                
-                <label>Storage Bucket:</label>
-                <input type="text" id="storageBucket" class="config-input" placeholder="fro-loggbok.appspot.com">
-                
-                <label>Messaging Sender ID:</label>
-                <input type="text" id="messagingSenderId" class="config-input" placeholder="123456789">
-                
-                <label>App ID:</label>
-                <input type="text" id="appId" class="config-input" placeholder="1:123456789:web:abc123">
-                
-                <div style="display: flex; gap: 10px; margin-top: 15px;">
-                    <button class="btn btn-primary" onclick="sparaConfig()" style="flex: 1;">💾 Spara & Anslut</button>
-                    <button class="btn btn-secondary" onclick="visaQRKod()" style="flex: 1;">📱 Visa QR-kod</button>
-                </div>
-                
-                <div id="qrSection" style="display: none; margin-top: 20px; text-align: center; background: white; padding: 20px; border-radius: 8px;">
-                    <h4>📱 Scanna med mobilen</h4>
-                    <p>Öppna kameran på din mobil och scanna denna QR-kod</p>
-                    <canvas id="qrCanvas"></canvas>
-                    <p style="margin-top: 10px; color: #666; font-size: 0.9em;">QR-koden innehåller din Firebase-konfiguration</p>
-                    <button class="btn btn-secondary" onclick="doljQRKod()" style="margin-top: 10px;">Stäng</button>
-                </div>
-            </div>
-
-            <div class="setup-box" style="background: #d1ecf1; border-color: #0c5460;">
-                <h3>🔒 Aktivera Firestore Database:</h3>
-                <ol>
-                    <li>I Firebase Console, gå till <strong>"Build" → "Firestore Database"</strong></li>
-                    <li>Klicka <strong>"Create database"</strong></li>
-                    <li>Välj läge: <strong>"Start in test mode"</strong> (för enkelhetens skull)</li>
-                    <li>Välj location: <strong>"europe-west1"</strong> (närmast Sverige)</li>
-                    <li>Klicka <strong>"Enable"</strong></li>
-                </ol>
-            </div>
-            
-            <div class="setup-box" style="background: #fff3cd; border-color: #856404;">
-                <h3>👤 Aktivera Authentication (för inloggning):</h3>
-                <ol>
-                    <li>I Firebase Console, gå till <strong>"Build" → "Authentication"</strong></li>
-                    <li>Klicka <strong>"Get started"</strong></li>
-                    <li>Under "Sign-in method", klicka på <strong>"Email/Password"</strong></li>
-                    <li>Aktivera "Email/Password" och klicka "Save"</li>
-                    <li>Gå till fliken <strong>"Users"</strong></li>
-                    <li>Klicka <strong>"Add user"</strong> och skapa ditt konto</li>
-                    <li>I <strong>"Firestore Database" → "Rules"</strong>, ersätt med:<br>
-                        <code style="display: block; background: white; padding: 10px; margin-top: 5px;">
-                        rules_version = '2';<br>
-                        service cloud.firestore {<br>
-                        &nbsp;&nbsp;match /databases/{database}/documents {<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;match /{document=**} {<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;allow read, write: if request.auth != null;<br>
-                        &nbsp;&nbsp;&nbsp;&nbsp;}<br>
-                        &nbsp;&nbsp;}<br>
-                        }
-                        </code>
-                    </li>
-                    <li>Klicka "Publish"</li>
-                    <li>Nu krävs inloggning för att använda appen!</li>
-                </ol>
+            <div style="background: white; padding: 20px; border-radius: 10px;">
+                <input type="text" id="apiKey" placeholder="API Key" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+                <input type="text" id="projectId" placeholder="Project ID" style="width: 100%; padding: 10px; margin: 5px 0; border: 1px solid #ddd; border-radius: 5px;">
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="window.sparaConfig()">Spara & Anslut</button>
             </div>
         </div>
-
-        <div id="loginSection" style="display: none;">
-            <div class="info">
-                <h3 style="margin-top: 0;">🔐 Logga in</h3>
-                <p>Du måste logga in för att använda frö-loggboken.</p>
-            </div>
-            
-            <div class="config-box" style="max-width: 400px; margin: 0 auto;">
-                <label>Email:</label>
-                <input type="email" id="loginEmail" class="config-input" placeholder="din@email.com">
-                
-                <label>Lösenord:</label>
-                <input type="password" id="loginPassword" class="config-input" placeholder="••••••••" onkeypress="if(event.key==='Enter') loggaIn()">
-                
-                <button class="btn btn-primary" onclick="loggaIn()" style="margin-top: 15px; width: 100%;">🔓 Logga in</button>
-                
+        
+        <div id="loginSection">
+            <div style="background: white; padding: 30px; border-radius: 10px; max-width: 400px; margin: 0 auto;">
+                <h2 style="margin-bottom: 20px;">🔐 Logga in</h2>
+                <input type="email" id="loginEmail" placeholder="Email" style="width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px;">
+                <input type="password" id="loginPassword" placeholder="Lösenord" style="width: 100%; padding: 12px; margin: 10px 0; border: 2px solid #ddd; border-radius: 5px;">
+                <button class="btn btn-primary" style="width: 100%; margin-top: 10px;" onclick="window.loggaIn()">Logga in</button>
                 <div id="loginError" style="color: #f44336; margin-top: 10px; display: none;"></div>
             </div>
         </div>
-
+        
         <div id="appContent">
             <div class="success">
-                <strong>✅ Ansluten till Firebase!</strong> Inloggad som: <span id="userEmail"></span>
-                <button class="btn btn-delete" onclick="loggaUt()" style="float: right; padding: 6px 12px; margin-left: 5px;">🚪 Logga ut</button>
-                <button class="btn btn-secondary" onclick="visaQRKodInloggad()" style="float: right; padding: 6px 12px;">📱 QR-kod</button>
+                <strong>✅ Ansluten!</strong> Inloggad som: <span id="userEmail"></span>
+                <button class="btn btn-delete" onclick="window.loggaUt()" style="float: right; padding: 6px 12px;">Logga ut</button>
                 <div style="clear: both;"></div>
             </div>
             
-            <div id="qrSectionInloggad" style="display: none; background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; text-align: center; border: 2px solid #4caf50;">
-                <h4>📱 Scanna med mobilen</h4>
-                <p>Öppna kameran på din mobil och scanna denna QR-kod för att få tillgång på mobilen</p>
-                <canvas id="qrCanvasInloggad" style="max-width: 100%;"></canvas>
-                <p style="margin-top: 10px; color: #666; font-size: 0.9em;">QR-koden innehåller din Firebase-konfiguration</p>
-                <button class="btn btn-secondary" onclick="doljQRKodInloggad()" style="margin-top: 10px;">Stäng</button>
-            </div>
-            
             <div class="controls">
-                <input type="text" id="searchBox" placeholder="🔍 Sök efter växt, sort eller anteckningar...">
-                <select id="yearFilter" onchange="visa()" style="padding: 12px; border: 2px solid #4caf50; border-radius: 5px; font-size: 16px;">
+                <input type="text" id="searchBox" placeholder="🔍 Sök...">
+                <select id="yearFilter" onchange="window.visa()">
                     <option value="">Alla år</option>
                 </select>
-                <button class="btn btn-primary" onclick="nyPost()">➕ Ny Sådd</button>
-                <button class="btn btn-secondary" onclick="laddaData()">🔄 Ladda om</button>
-                <button class="btn btn-warning" onclick="exporteraCSV()">📥 Exportera CSV</button>
-                <label class="btn btn-warning" style="margin: 0;">
-                    📤 Importera
-                    <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="importeraFil(this.files[0])">
-                </label>
-                <button class="btn btn-secondary" onclick="visaPaminnelser()">🔔 Påminnelser</button>
+                <button class="btn btn-primary" onclick="window.nyPost()">➕ Ny Sådd</button>
+                <button class="btn btn-secondary" onclick="window.laddaData()">🔄 Ladda om</button>
             </div>
             
-            <div id="breadcrumb" style="display: none; background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
-                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
-                    <span style="color: #666; cursor: pointer;" onclick="visaVaxtlista()">🏠 Hem</span>
-                    <span id="breadcrumbPath" style="color: #4caf50; font-weight: bold;"></span>
-                </div>
-            </div>
-            
-            <div id="paminnelserSection" style="display: none; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0;">🔔 Kommande påminnelser</h3>
-                    <button class="btn btn-secondary" onclick="doljPaminnelser()" style="padding: 6px 12px;">Stäng</button>
-                </div>
-                <div id="paminnelserLista"></div>
+            <div id="breadcrumb" style="display: none;" class="breadcrumb">
+                <span onclick="window.visaVaxtlista()">🏠 Hem</span>
+                <span id="breadcrumbPath"></span>
             </div>
             
             <div id="container"></div>
         </div>
-    </div>
-    
-    <div id="modal" class="modal" onclick="stangModal()">
-        <span class="modal-close">×</span>
-        <img id="modalImg">
     </div>
 
     <script type="module">
@@ -436,1135 +145,254 @@
         import { getFirestore, collection, addDoc, updateDoc, deleteDoc, doc, getDocs, onSnapshot } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
         import { getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
         
-        // Importera bibliotek för Excel och QR-koder
-        import * as XLSX from 'https://cdn.sheetjs.com/xlsx-0.20.1/package/xlsx.mjs';
-        import QRCode from 'https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm';
+        let db, auth, data = [], currentUser = null;
+        let currentView = 'vaxtlista', selectedVaxt = null, selectedSort = null;
         
-        let db;
-        let auth;
-        let data = [];
-        let unsubscribe;
-        let currentUser = null;
-        let currentView = 'vaxtlista'; // 'vaxtlista', 'sortlista', 'detalj'
-        let selectedVaxt = null;
-        let selectedSort = null;
-        
-        // Definiera globala funktioner direkt
+        // Globala funktioner
         window.sparaConfig = function() {
-            console.log('💾 sparaConfig kallad');
             const config = {
                 apiKey: document.getElementById('apiKey').value.trim(),
-                authDomain: document.getElementById('authDomain').value.trim(),
                 projectId: document.getElementById('projectId').value.trim(),
-                storageBucket: document.getElementById('storageBucket').value.trim(),
-                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
-                appId: document.getElementById('appId').value.trim()
+                authDomain: `${document.getElementById('projectId').value.trim()}.firebaseapp.com`,
+                storageBucket: `${document.getElementById('projectId').value.trim()}.appspot.com`,
+                messagingSenderId: '123456789',
+                appId: '1:123456789:web:abc123'
             };
             
-            console.log('📝 Config:', config);
-            
             if (!config.apiKey || !config.projectId) {
-                alert('Fyll i åtminstone API Key och Project ID!');
+                alert('Fyll i API Key och Project ID!');
                 return;
             }
             
             localStorage.setItem('firebaseConfig', JSON.stringify(config));
-            console.log('✅ Config sparad i localStorage');
             initFirebase(config);
         };
         
-        
-        window.visaQRKod = async function() {
-            const config = {
-                apiKey: document.getElementById('apiKey').value.trim(),
-                authDomain: document.getElementById('authDomain').value.trim(),
-                projectId: document.getElementById('projectId').value.trim(),
-                storageBucket: document.getElementById('storageBucket').value.trim(),
-                messagingSenderId: document.getElementById('messagingSenderId').value.trim(),
-                appId: document.getElementById('appId').value.trim()
-            };
-            
-            if (!config.apiKey || !config.projectId) {
-                alert('Fyll i Firebase-konfigurationen först!');
-                return;
-            }
-            
-            // Skapa URL med config som parameter
-            const baseUrl = window.location.origin + window.location.pathname;
-            const configParam = btoa(JSON.stringify(config)); // Base64-encode
-            const qrUrl = baseUrl + '#config=' + configParam;
-            
-            const canvas = document.getElementById('qrCanvas');
-            await QRCode.toCanvas(canvas, qrUrl, {
-                width: 300,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#ffffff'
-                }
-            });
-            
-            document.getElementById('qrSection').style.display = 'block';
-        };
-        
-        window.doljQRKod = function() {
-            document.getElementById('qrSection').style.display = 'none';
-        };
-        
-        window.visaQRKodInloggad = async function() {
-            const configStr = localStorage.getItem('firebaseConfig');
-            if (!configStr) {
-                alert('❌ Ingen konfiguration hittades');
-                return;
-            }
-            
-            const config = JSON.parse(configStr);
-            
-            // Skapa URL med config som parameter
-            const baseUrl = window.location.origin + window.location.pathname;
-            const configParam = btoa(JSON.stringify(config)); // Base64-encode
-            const qrUrl = baseUrl + '#config=' + configParam;
-            
-            const canvas = document.getElementById('qrCanvasInloggad');
-            await QRCode.toCanvas(canvas, qrUrl, {
-                width: 300,
-                margin: 2,
-                color: {
-                    dark: '#000000',
-                    light: '#ffffff'
-                }
-            });
-            
-            document.getElementById('qrSectionInloggad').style.display = 'block';
-            
-            // Scrolla till QR-koden
-            document.getElementById('qrSectionInloggad').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        };
-        
-        window.doljQRKodInloggad = function() {
-            document.getElementById('qrSectionInloggad').style.display = 'none';
-        };
-        
-        // Kolla om vi kom hit via QR-kod
-        function kollaQRConfig() {
-            const hash = window.location.hash;
-            if (hash.startsWith('#config=')) {
-                try {
-                    const configParam = hash.substring(8); // Ta bort '#config='
-                    const config = JSON.parse(atob(configParam)); // Base64-decode och parse
-                    
-                    console.log('✅ Konfiguration från QR-kod mottagen!');
-                    localStorage.setItem('firebaseConfig', JSON.stringify(config));
-                    
-                    // Rensa hash från URL
-                    window.location.hash = '';
-                    
-                    // Fyll i fälten och anslut
-                    document.getElementById('apiKey').value = config.apiKey;
-                    document.getElementById('authDomain').value = config.authDomain;
-                    document.getElementById('projectId').value = config.projectId;
-                    document.getElementById('storageBucket').value = config.storageBucket;
-                    document.getElementById('messagingSenderId').value = config.messagingSenderId;
-                    document.getElementById('appId').value = config.appId;
-                    
-                    initFirebase(config);
-                    
-                    alert('✅ Konfiguration mottagen från QR-kod!\n\nDu kan nu logga in.');
-                } catch (error) {
-                    console.error('Fel vid läsning av QR-config:', error);
-                    alert('❌ Ogiltig QR-kod');
-                }
-            }
-        }
-        
-        function initFirebase(config) {
-            console.log('Initierar Firebase med config:', config);
-            
-            try {
-                const app = initializeApp(config);
-                db = getFirestore(app);
-                auth = getAuth(app);
-                
-                console.log('✅ Firebase initierad!');
-                
-                // Lyssna på autentiseringsstatus
-                onAuthStateChanged(auth, (user) => {
-                    if (user) {
-                        // Användare inloggad
-                        currentUser = user;
-                        console.log('✅ Användare inloggad:', user.email);
-                        document.getElementById('userEmail').textContent = user.email;
-                        document.getElementById('setupSection').style.display = 'none';
-                        document.getElementById('loginSection').style.display = 'none';
-                        document.getElementById('appContent').style.display = 'block';
-                        
-                        laddaData();
-                        
-                        // Lyssna på realtidsändringar
-                        const colRef = collection(db, 'fron');
-                        unsubscribe = onSnapshot(colRef, (snapshot) => {
-                            console.log('📡 Firebase uppdatering - antal dokument:', snapshot.size);
-                            const previousCount = data.length;
-                            data = [];
-                            snapshot.forEach((doc) => {
-                                data.push({ firebaseId: doc.id, ...doc.data() });
-                            });
-                            
-                            // Sortera så nyast kommer först
-                            data.sort((a, b) => {
-                                const dateA = new Date(a.skapad || 0);
-                                const dateB = new Date(b.skapad || 0);
-                                return dateB - dateA;
-                            });
-                            
-                            visa();
-                            
-                            if (data.length > previousCount) {
-                                window.scrollTo({ top: 0, behavior: 'smooth' });
-                            }
-                            
-                            // Kolla påminnelser när data laddats
-                            setTimeout(() => {
-                                console.log('⏰ Timer körs - kollar påminnelser');
-                                window.kollaPaminnelserVidStart();
-                            }, 1000);
-                        }, (error) => {
-                            console.error('❌ Fel i realtidslyssnare:', error);
-                            if (error.code === 'permission-denied') {
-                                alert('🔒 Åtkomst nekad!\n\nDu måste vara inloggad för att läsa data.\n\nUppdatera Firestore Security Rules enligt instruktionerna.');
-                            } else {
-                                alert('Fel vid lyssning på Firebase:\n\n' + error.message);
-                            }
-                        });
-                        
-                    } else {
-                        // Ingen användare inloggad
-                        currentUser = null;
-                        console.log('❌ Ingen användare inloggad');
-                        document.getElementById('setupSection').style.display = 'none';
-                        document.getElementById('loginSection').style.display = 'block';
-                        document.getElementById('appContent').style.display = 'none';
-                    }
-                });
-                
-                console.log('✅ Firebase helt klar!');
-            } catch (error) {
-                console.error('❌ Firebase-initieringsfel:', error);
-                alert('❌ Fel vid anslutning till Firebase:\n\n' + error.message);
-            }
-        }
-        
         window.loggaIn = async function() {
-            const email = document.getElementById('loginEmail').value.trim();
+            const email = document.getElementById('loginEmail').value;
             const password = document.getElementById('loginPassword').value;
-            const errorDiv = document.getElementById('loginError');
-            
-            if (!email || !password) {
-                errorDiv.textContent = 'Fyll i både email och lösenord';
-                errorDiv.style.display = 'block';
-                return;
-            }
-            
             try {
-                errorDiv.style.display = 'none';
                 await signInWithEmailAndPassword(auth, email, password);
-                console.log('✅ Inloggning lyckades');
             } catch (error) {
-                console.error('❌ Inloggningsfel:', error);
-                let felmeddelande = 'Kunde inte logga in';
-                
-                if (error.code === 'auth/invalid-credential' || error.code === 'auth/wrong-password' || error.code === 'auth/user-not-found') {
-                    felmeddelande = 'Fel email eller lösenord';
-                } else if (error.code === 'auth/invalid-email') {
-                    felmeddelande = 'Ogiltig email-adress';
-                } else if (error.code === 'auth/too-many-requests') {
-                    felmeddelande = 'För många inloggningsförsök. Vänta en stund.';
-                } else {
-                    felmeddelande = error.message;
-                }
-                
-                errorDiv.textContent = felmeddelande;
-                errorDiv.style.display = 'block';
+                document.getElementById('loginError').textContent = 'Fel email eller lösenord';
+                document.getElementById('loginError').style.display = 'block';
             }
         };
         
         window.loggaUt = async function() {
-            if (confirm('Är du säker på att du vill logga ut?')) {
-                try {
-                    await signOut(auth);
-                    console.log('✅ Utloggad');
-                } catch (error) {
-                    console.error('❌ Utloggningsfel:', error);
-                    alert('Kunde inte logga ut: ' + error.message);
-                }
-            }
+            if (confirm('Logga ut?')) await signOut(auth);
         };
-        
-        async function laddaData() {
-            if (!db) return;
-            try {
-                const querySnapshot = await getDocs(collection(db, 'fron'));
-                data = [];
-                querySnapshot.forEach((doc) => {
-                    data.push({ firebaseId: doc.id, ...doc.data() });
-                });
-                
-                // Sortera så nyast kommer först
-                data.sort((a, b) => {
-                    const dateA = new Date(a.skapad || 0);
-                    const dateB = new Date(b.skapad || 0);
-                    return dateB - dateA; // Nyast först
-                });
-                
-                visa();
-                console.log('✅ Laddade ' + data.length + ' poster');
-                
-                // Kolla påminnelser EFTER data laddats
-                setTimeout(() => {
-                    console.log('⏰ Timer från laddaData körs');
-                    window.kollaPaminnelserVidStart();
-                }, 1000);
-            } catch (error) {
-                console.error('Fel vid laddning:', error);
-            }
-        }
         
         window.nyPost = async function() {
-            console.log('🔴 Försöker skapa ny post...');
-            console.log('🔴 Firebase db:', db ? 'OK' : 'SAKNAS');
-            
-            if (!db) {
-                alert('❌ Firebase är inte anslutet!\n\nFyll i Firebase-konfigurationen först (se instruktionerna högst upp).');
-                return;
-            }
-            
+            if (!db) return;
             const post = {
                 id: Date.now(),
-                vaxt: '',
-                sort: '',
-                saddDatum: '',
-                antalFron: '',
-                plats: '',
-                groddDatum: '',
-                dagarGrodd: '',
-                antalGrodda: '',
-                grobarhet: '',
-                utplantering: '',
-                skord: '',
-                rekSadd: '',
-                rekSkord: '',
-                omskolning: '',
-                paminnelse: '',
-                paminnelseText: '',
-                ar: new Date().getFullYear(),
-                anteckningar: '',
-                bilder: [],
-                skapad: new Date().toISOString()
+                vaxt: '', sort: '', saddDatum: '', ar: new Date().getFullYear(),
+                bilder: [], skapad: new Date().toISOString()
             };
-            
-            try {
-                console.log('🔴 Skapar post i Firebase...', post);
-                const docRef = await addDoc(collection(db, 'fron'), post);
-                console.log('✅ Post skapad med ID:', docRef.id);
-                
-                // Visa detaljvy för nya posten
-                currentView = 'detalj';
-                selectedVaxt = null;
-                selectedSort = null;
-                
-                // Data uppdateras automatiskt via onSnapshot-lyssnaren
-            } catch (error) {
-                console.error('❌ Fel vid skapande av post:', error);
-                alert('❌ Kunde inte skapa post:\n\n' + error.message + '\n\nKolla konsolen för mer info (F12)');
-            }
+            await addDoc(collection(db, 'fron'), post);
+            currentView = 'detalj';
         };
         
-        window.radera = async function(firebaseId) {
-            if (!db || !confirm('Ta bort denna post?')) return;
-            try {
-                await deleteDoc(doc(db, 'fron', firebaseId));
-            } catch (error) {
-                console.error('Fel vid radering:', error);
-            }
-        };
-        
-        window.uppdatera = async function(firebaseId, falt, varde) {
+        window.laddaData = async function() {
             if (!db) return;
-            const post = data.find(p => p.firebaseId === firebaseId);
-            if (!post) return;
-            
-            post[falt] = varde;
-            
-            if (falt === 'saddDatum' || falt === 'groddDatum') {
-                if (post.saddDatum && post.groddDatum) {
-                    const d1 = new Date(post.saddDatum);
-                    const d2 = new Date(post.groddDatum);
-                    post.dagarGrodd = Math.floor((d2 - d1) / 86400000);
-                }
-            }
-            
-            if (falt === 'antalFron' || falt === 'antalGrodda') {
-                if (post.antalFron && post.antalGrodda) {
-                    post.grobarhet = Math.round((post.antalGrodda / post.antalFron) * 100) + '%';
-                }
-            }
-            
-            try {
-                const { firebaseId: fid, ...updateData } = post;
-                await updateDoc(doc(db, 'fron', firebaseId), updateData);
-            } catch (error) {
-                console.error('Fel vid uppdatering:', error);
-            }
+            const snapshot = await getDocs(collection(db, 'fron'));
+            data = [];
+            snapshot.forEach(doc => data.push({ firebaseId: doc.id, ...doc.data() }));
+            data.sort((a, b) => new Date(b.skapad || 0) - new Date(a.skapad || 0));
+            window.visa();
         };
         
-        window.laddaBilder = function(firebaseId, filer) {
-            const post = data.find(p => p.firebaseId === firebaseId);
-            if (!post || !db) return;
-            
-            Array.from(filer).forEach(fil => {
-                const reader = new FileReader();
-                reader.onload = async (e) => {
-                    post.bilder.push(e.target.result);
-                    try {
-                        const { firebaseId: fid, ...updateData } = post;
-                        await updateDoc(doc(db, 'fron', firebaseId), updateData);
-                    } catch (error) {
-                        console.error('Fel vid bilduppladdning:', error);
-                    }
-                };
-                reader.readAsDataURL(fil);
-            });
-        };
-        
-        window.taBortBild = async function(firebaseId, index) {
-            const post = data.find(p => p.firebaseId === firebaseId);
-            if (!post || !db) return;
-            
-            post.bilder.splice(index, 1);
-            try {
-                const { firebaseId: fid, ...updateData } = post;
-                await updateDoc(doc(db, 'fron', firebaseId), updateData);
-            } catch (error) {
-                console.error('Fel vid borttagning av bild:', error);
-            }
-        };
-        
-        window.visaPaminnelser = function() {
-            const idag = new Date();
-            idag.setHours(0, 0, 0, 0);
-            
-            const kommandePaminnelser = data
-                .filter(p => p.paminnelse)
-                .map(p => {
-                    const paminnelseDatum = new Date(p.paminnelse);
-                    paminnelseDatum.setHours(0, 0, 0, 0);
-                    const dagarKvar = Math.ceil((paminnelseDatum - idag) / (1000 * 60 * 60 * 24));
-                    return { ...p, paminnelseDatum, dagarKvar };
-                })
-                .filter(p => p.dagarKvar >= -7) // Visa även 7 dagar bakåt
-                .sort((a, b) => a.dagarKvar - b.dagarKvar);
-            
-            const lista = document.getElementById('paminnelserLista');
-            
-            if (kommandePaminnelser.length === 0) {
-                lista.innerHTML = '<p style="color: #666;">Inga aktiva påminnelser. Lägg till datum och text i "Påminnelse"-fälten på dina växter!</p>';
-            } else {
-                lista.innerHTML = kommandePaminnelser.map(p => {
-                    let dagText = '';
-                    let style = '';
-                    
-                    if (p.dagarKvar < 0) {
-                        dagText = `${Math.abs(p.dagarKvar)} dagar sedan`;
-                        style = 'background: #ffebee; border-left: 4px solid #f44336;';
-                    } else if (p.dagarKvar === 0) {
-                        dagText = 'IDAG!';
-                        style = 'background: #fff9c4; border-left: 4px solid #ff9800; font-weight: bold;';
-                    } else if (p.dagarKvar === 1) {
-                        dagText = 'Imorgon';
-                        style = 'background: #e1f5fe; border-left: 4px solid #2196F3;';
-                    } else if (p.dagarKvar <= 7) {
-                        dagText = `Om ${p.dagarKvar} dagar`;
-                        style = 'background: #e8f5e9; border-left: 4px solid #4caf50;';
-                    } else {
-                        dagText = `Om ${p.dagarKvar} dagar`;
-                        style = 'background: #f5f5f5; border-left: 4px solid #9e9e9e;';
-                    }
-                    
-                    return `
-                        <div style="padding: 12px; margin-bottom: 10px; border-radius: 5px; ${style}">
-                            <div style="display: flex; justify-content: space-between; align-items: start;">
-                                <div>
-                                    <strong>${p.vaxt || 'Växt'} ${p.sort ? '- ' + p.sort : ''}</strong>
-                                    <div style="margin-top: 5px; color: #555;">
-                                        🔔 ${p.paminnelseText || 'Påminnelse'}
-                                    </div>
-                                    <div style="margin-top: 5px; font-size: 0.9em; color: #666;">
-                                        📅 ${p.paminnelse} (${dagText})
-                                    </div>
-                                </div>
-                                <button onclick="taBortPaminnelse('${p.firebaseId}')" style="background: #f44336; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">✓ Klar</button>
-                            </div>
-                        </div>
-                    `;
-                }).join('');
-            }
-            
-            document.getElementById('paminnelserSection').style.display = 'block';
-            document.getElementById('paminnelserSection').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-        };
-        
-        window.doljPaminnelser = function() {
-            document.getElementById('paminnelserSection').style.display = 'none';
-        };
-        
-        window.taBortPaminnelse = async function(firebaseId) {
-            if (confirm('Markera påminnelsen som klar?')) {
-                const post = data.find(p => p.firebaseId === firebaseId);
-                if (post && db) {
-                    post.paminnelse = '';
-                    post.paminnelseText = '';
-                    try {
-                        const { firebaseId: fid, ...updateData } = post;
-                        await updateDoc(doc(db, 'fron', firebaseId), updateData);
-                        visaPaminnelser(); // Uppdatera listan
-                    } catch (error) {
-                        console.error('Fel vid borttagning av påminnelse:', error);
-                    }
-                }
-            }
-        };
-        
-        window.kollaPaminnelserVidStart = function() {
-            console.log('🔍 Kollar påminnelser vid start...');
-            console.log('📊 Antal poster i data:', data.length);
-            
-            const idag = new Date();
-            // Använd lokal tid istället för UTC
-            const year = idag.getFullYear();
-            const month = String(idag.getMonth() + 1).padStart(2, '0');
-            const day = String(idag.getDate()).padStart(2, '0');
-            const idagStr = `${year}-${month}-${day}`;
-            
-            console.log('📅 Dagens datum (lokal tid):', idagStr);
-            console.log('📅 Dagens datum (ISO):', idag.toISOString().split('T')[0]);
-            
-            // Kolla om vi redan visat notifikation idag
-            const senastVisad = localStorage.getItem('senastVisadPaminnelse');
-            console.log('💾 Senast visad påminnelse:', senastVisad);
-            
-            if (senastVisad === idagStr) {
-                console.log('✅ Påminnelser redan visade idag - hoppar över');
-                return;
-            }
-            
-            // Logga alla påminnelser för debugging
-            const allaPaminnelser = data.filter(p => p.paminnelse);
-            console.log('📋 Alla poster med påminnelser:', allaPaminnelser.map(p => ({
-                vaxt: p.vaxt,
-                datum: p.paminnelse
-            })));
-            
-            const idagsPaminnelser = data
-                .filter(p => p.paminnelse === idagStr)
-                .map(p => ({
-                    vaxt: p.vaxt || 'Växt',
-                    sort: p.sort || '',
-                    text: p.paminnelseText || 'Påminnelse',
-                    firebaseId: p.firebaseId
-                }));
-            
-            console.log('🔔 Påminnelser för idag:', idagsPaminnelser);
-            
-            if (idagsPaminnelser.length > 0) {
-                console.log('✅ Visar notifikation för', idagsPaminnelser.length, 'påminnelser');
-                // Visa notifikation
-                visaPaminnelseNotifikation(idagsPaminnelser);
-                
-                // Spara att vi visat notifikation idag
-                localStorage.setItem('senastVisadPaminnelse', idagStr);
-            } else {
-                console.log('📭 Inga påminnelser för idag');
-            }
-        };
-        
-        function visaPaminnelseNotifikation(paminnelser) {
-            const meddelande = paminnelser.map(p => 
-                `🌱 ${p.vaxt}${p.sort ? ' - ' + p.sort : ''}\n   📝 ${p.text}`
-            ).join('\n\n');
-            
-            // Skapa en vacker notifikationsruta
-            const notisDiv = document.createElement('div');
-            notisDiv.id = 'paminnelseNotis';
-            notisDiv.style.cssText = `
-                position: fixed;
-                top: 20px;
-                right: 20px;
-                max-width: 400px;
-                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                color: white;
-                padding: 20px;
-                border-radius: 15px;
-                box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-                z-index: 10000;
-                animation: slideIn 0.5s ease;
-            `;
-            
-            notisDiv.innerHTML = `
-                <style>
-                    @keyframes slideIn {
-                        from { transform: translateX(400px); opacity: 0; }
-                        to { transform: translateX(0); opacity: 1; }
-                    }
-                </style>
-                <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 15px;">
-                    <h3 style="margin: 0; font-size: 1.3em;">🔔 Påminnelser för idag!</h3>
-                    <button onclick="stangNotis()" style="background: rgba(255,255,255,0.3); border: none; color: white; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; font-size: 1.2em; font-weight: bold;">×</button>
-                </div>
-                <div style="background: rgba(255,255,255,0.2); padding: 15px; border-radius: 10px; margin-bottom: 15px; max-height: 300px; overflow-y: auto;">
-                    ${paminnelser.map(p => `
-                        <div style="background: rgba(255,255,255,0.9); color: #333; padding: 12px; margin-bottom: 10px; border-radius: 8px;">
-                            <strong style="color: #2d5016;">🌱 ${p.vaxt}${p.sort ? ' - ' + p.sort : ''}</strong><br>
-                            <span style="color: #666;">📝 ${p.text}</span>
-                        </div>
-                    `).join('')}
-                </div>
-                <div style="display: flex; gap: 10px;">
-                    <button onclick="visaPaminnelser(); stangNotis();" style="flex: 1; background: white; color: #667eea; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">Visa alla</button>
-                    <button onclick="stangNotis()" style="flex: 1; background: rgba(255,255,255,0.3); color: white; border: none; padding: 12px; border-radius: 8px; cursor: pointer; font-weight: bold;">Stäng</button>
-                </div>
-            `;
-            
-            document.body.appendChild(notisDiv);
-            
-            // Spela ljud (valfritt)
-            try {
-                const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmwhBSuBzvLZiTYHGGS37OihUBELTKXh8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHgU2jdXwyHMpBSl+zPLaizsIHGy57+mhTxELTqXi8bllHg==');
-                audio.volume = 0.3;
-                audio.play().catch(e => console.log('Ljud kunde inte spelas'));
-            } catch (e) {
-                // Ignore audio errors
-            }
-        }
-        
-        window.stangNotis = function() {
-            const notis = document.getElementById('paminnelseNotis');
-            if (notis) {
-                notis.style.animation = 'slideOut 0.3s ease';
-                setTimeout(() => notis.remove(), 300);
-            }
-        };
-        window.visaBild = function(src) {
-            document.getElementById('modalImg').src = src;
-            document.getElementById('modal').classList.add('show');
-        };
-        
-        window.stangModal = function() {
-            document.getElementById('modal').classList.remove('show');
-        };
-        
-        window.exporteraCSV = function() {
-            let csv = 'Växt,Sort,Datum Sådd,Antal Frön,Plats,Datum Grodd,Dagar till Grodd,Antal Grodda,Grobarhets-%,Datum Utplantering,Datum Första Skörd,Rekommenderad Sådd,Rekommenderad Skörd,Omskolning,Anteckningar\n';
-            
-            data.forEach(p => {
-                csv += [
-                    p.vaxt || '',
-                    p.sort || '',
-                    p.saddDatum || '',
-                    p.antalFron || '',
-                    p.plats || '',
-                    p.groddDatum || '',
-                    p.dagarGrodd || '',
-                    p.antalGrodda || '',
-                    p.grobarhet || '',
-                    p.utplantering || '',
-                    p.skord || '',
-                    p.rekSadd || '',
-                    p.rekSkord || '',
-                    p.omskolning || '',
-                    '"' + (p.anteckningar || '').replace(/"/g, '""') + '"'
-                ].join(',') + '\n';
-            });
-            
-            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            link.href = URL.createObjectURL(blob);
-            link.download = 'fro-loggbok-' + new Date().toISOString().split('T')[0] + '.csv';
-            link.click();
-        };
-        
-        window.importeraFil = async function(file) {
-            if (!file) {
-                alert('❌ Ingen fil vald');
-                return;
-            }
-            
-            if (!db) {
-                alert('❌ Firebase är inte anslutet. Anslut först till Firebase.');
-                return;
-            }
-            
-            console.log('Importerar fil:', file.name, 'Typ:', file.type, 'Storlek:', file.size);
-            
-            const fileName = file.name.toLowerCase();
-            
-            try {
-                if (fileName.endsWith('.csv')) {
-                    console.log('Läser CSV-fil...');
-                    let text = await file.text();
-                    
-                    // Hantera BOM (Byte Order Mark) som Excel kan lägga till
-                    if (text.charCodeAt(0) === 0xFEFF) {
-                        text = text.substring(1);
-                    }
-                    
-                    console.log('CSV innehåll (första 1000 tecken):', text.substring(0, 1000));
-                    
-                    // Hantera olika radbrytningar
-                    const lines = text.split(/\r?\n/).filter(line => line.trim());
-                    console.log('Antal rader totalt:', lines.length);
-                    
-                    if (lines.length < 2) {
-                        alert('❌ CSV-filen innehåller bara ' + lines.length + ' rad(er). Behöver minst 2 (rubrik + data)');
-                        return;
-                    }
-                    
-                    // Läs headers
-                    let headers = [];
-                    let separator = ',';
-                    const firstLine = lines[0];
-                    
-                    // Avgör separator (semikolon eller komma)
-                    const semicolonCount = (firstLine.match(/;/g) || []).length;
-                    const commaCount = (firstLine.match(/,/g) || []).length;
-                    
-                    if (semicolonCount > commaCount) {
-                        separator = ';';
-                        headers = firstLine.split(';').map(h => h.trim().replace(/^"|"$/g, ''));
-                        console.log('✓ Använder SEMIKOLON som separator');
-                    } else {
-                        separator = ',';
-                        headers = parseCSVLine(firstLine);
-                        console.log('✓ Använder KOMMA som separator');
-                    }
-                    
-                    console.log('Kolumner hittade:', headers);
-                    
-                    let importerade = 0;
-                    let hoppade = 0;
-                    let fel = 0;
-                    
-                    for (let i = 1; i < lines.length; i++) {
-                        try {
-                            const line = lines[i].trim();
-                            if (!line) {
-                                console.log('Hoppade över tom rad', i);
-                                hoppade++;
-                                continue;
-                            }
-                            
-                            let values = [];
-                            if (separator === ';') {
-                                values = line.split(';').map(v => v.trim().replace(/^"|"$/g, ''));
-                            } else {
-                                values = parseCSVLine(line);
-                            }
-                            
-                            console.log('--- RAD', i, '---');
-                            console.log('Rådata:', line.substring(0, 200));
-                            console.log('Antal värden:', values.length, 'Förväntade kolumner:', headers.length);
-                            console.log('Värden:', values);
-                            
-                            const post = mappaRad(headers, values);
-                            console.log('Resultat efter mappning:', {
-                                vaxt: post.vaxt,
-                                sort: post.sort,
-                                saddDatum: post.saddDatum,
-                                anteckningar: post.anteckningar ? post.anteckningar.substring(0, 50) : ''
-                            });
-                            
-                            if (post.vaxt || post.sort) {
-                                console.log('✅ IMPORTERAR denna rad!');
-                                await addDoc(collection(db, 'fron'), post);
-                                importerade++;
-                            } else {
-                                hoppade++;
-                                console.log('⚠️ HOPPAR ÖVER - ingen växt eller sort hittades');
-                            }
-                        } catch (error) {
-                            fel++;
-                            console.error('❌ FEL på rad', i, ':', error);
-                        }
-                    }
-                    
-                    const resultat = `✅ Import klar!\n\nImporterade: ${importerade} poster\nHoppade över: ${hoppade} rader\nFel: ${fel}`;
-                    console.log(resultat);
-                    alert(resultat + '\n\nKolla konsolen för detaljer (F12 eller högerklicka → Inspektera → Console)');
-                    
-                } else if (fileName.endsWith('.xlsx') || fileName.endsWith('.xls')) {
-                    console.log('Läser Excel-fil...');
-                    const arrayBuffer = await file.arrayBuffer();
-                    console.log('Läste', arrayBuffer.byteLength, 'bytes');
-                    
-                    const workbook = XLSX.read(arrayBuffer);
-                    console.log('Ark i filen:', workbook.SheetNames);
-                    
-                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                    const jsonData = XLSX.utils.sheet_to_json(firstSheet);
-                    console.log('Hittade', jsonData.length, 'rader');
-                    console.log('Första raden:', jsonData[0]);
-                    
-                    if (jsonData.length === 0) {
-                        alert('❌ Excel-filen verkar vara tom');
-                        return;
-                    }
-                    
-                    let importerade = 0;
-                    let fel = 0;
-                    
-                    for (const row of jsonData) {
-                        try {
-                            const post = {
-                                id: Date.now() + Math.random(),
-                                vaxt: row['Växt'] || row['Växt/Grönsak'] || row['vaxt'] || '',
-                                sort: row['Sort'] || row['sort'] || '',
-                                saddDatum: formatDatum(row['Datum Sådd'] || row['Datum sådd'] || row['datum_sadd']),
-                                antalFron: String(row['Antal Frön'] || row['Antal frön'] || row['antal_fron'] || ''),
-                                plats: row['Plats'] || row['plats'] || '',
-                                groddDatum: formatDatum(row['Datum Grodd'] || row['Datum grodd'] || row['datum_grodd']),
-                                dagarGrodd: String(row['Dagar till Grodd'] || row['Dagar till grodd'] || row['dagar_grodd'] || ''),
-                                antalGrodda: String(row['Antal Grodda'] || row['Antal grodda'] || row['antal_grodda'] || ''),
-                                grobarhet: row['Grobarhets-%'] || row['Grobarhet'] || row['grobarhet'] || '',
-                                utplantering: formatDatum(row['Datum Utplantering'] || row['Datum utplantering'] || row['utplantering']),
-                                skord: formatDatum(row['Datum Första Skörd'] || row['Datum första skörd'] || row['skord']),
-                                rekSadd: row['Rekommenderad Sådd'] || row['Rekommenderad sådd'] || row['rek_sadd'] || '',
-                                rekSkord: row['Rekommenderad Skörd'] || row['Rekommenderad skörd'] || row['rek_skord'] || '',
-                                omskolning: formatDatum(row['Omskolning'] || row['omskolning']),
-                                anteckningar: row['Anteckningar'] || row['anteckningar'] || '',
-                                bilder: [],
-                                skapad: new Date().toISOString()
-                            };
-                            
-                            if (post.vaxt || post.sort) {
-                                await addDoc(collection(db, 'fron'), post);
-                                importerade++;
-                                console.log('Importerade:', post.vaxt, post.sort);
-                            }
-                        } catch (error) {
-                            fel++;
-                            console.error('Fel vid import av rad:', error, row);
-                        }
-                    }
-                    
-                    alert(`✅ Import klar!\n\nImporterade: ${importerade} poster\nFel: ${fel}`);
-                } else {
-                    alert('❌ Ogiltig filtyp. Använd .csv, .xlsx eller .xls');
-                }
-                
-                document.getElementById('importFile').value = '';
-            } catch (error) {
-                console.error('Importfel:', error);
-                alert('❌ Kunde inte importera filen:\n\n' + error.message + '\n\nKolla konsolen för mer info (högerklicka → Inspektera → Console)');
-            }
-        };
-        
-        function parseCSVLine(line) {
-            const result = [];
-            let current = '';
-            let inQuotes = false;
-            
-            for (let i = 0; i < line.length; i++) {
-                const char = line[i];
-                
-                if (char === '"') {
-                    inQuotes = !inQuotes;
-                } else if (char === ',' && !inQuotes) {
-                    result.push(current.trim().replace(/^"|"$/g, ''));
-                    current = '';
-                } else {
-                    current += char;
-                }
-            }
-            result.push(current.trim().replace(/^"|"$/g, ''));
-            return result;
-        }
-        
-        function mappaRad(headers, values) {
-            console.log('Mappar rad - headers:', headers, 'values:', values);
-            
-            const post = {
-                id: Date.now() + Math.random(),
-                vaxt: '',
-                sort: '',
-                saddDatum: '',
-                antalFron: '',
-                plats: '',
-                groddDatum: '',
-                dagarGrodd: '',
-                antalGrodda: '',
-                grobarhet: '',
-                utplantering: '',
-                skord: '',
-                rekSadd: '',
-                rekSkord: '',
-                omskolning: '',
-                anteckningar: '',
-                bilder: [],
-                skapad: new Date().toISOString()
-            };
-            
-            headers.forEach((header, i) => {
-                const value = (values[i] || '').trim();
-                if (!value) return;
-                
-                const headerLower = header.toLowerCase().replace(/\s+/g, ' ');
-                
-                console.log('Kolumn:', header, '→', value);
-                
-                if (headerLower.includes('växt') || headerLower === 'vaxt') {
-                    post.vaxt = value;
-                    console.log('  → Sätter vaxt till:', value);
-                }
-                else if (headerLower === 'sort') {
-                    post.sort = value;
-                    console.log('  → Sätter sort till:', value);
-                }
-                else if (headerLower.includes('datum') && headerLower.includes('sådd')) post.saddDatum = formatDatum(value);
-                else if (headerLower.includes('antal') && headerLower.includes('frön')) post.antalFron = value;
-                else if (headerLower === 'plats') post.plats = value;
-                else if (headerLower.includes('datum') && headerLower.includes('grodd')) post.groddDatum = formatDatum(value);
-                else if (headerLower.includes('dagar')) post.dagarGrodd = value;
-                else if (headerLower.includes('antal') && headerLower.includes('grodda')) post.antalGrodda = value;
-                else if (headerLower.includes('grobarhet')) post.grobarhet = value;
-                else if (headerLower.includes('utplantering')) post.utplantering = formatDatum(value);
-                else if (headerLower.includes('skörd')) post.skord = formatDatum(value);
-                else if (headerLower.includes('rekommenderad') && headerLower.includes('sådd')) post.rekSadd = value;
-                else if (headerLower.includes('rekommenderad') && headerLower.includes('skörd')) post.rekSkord = value;
-                else if (headerLower === 'omskolning') post.omskolning = formatDatum(value);
-                else if (headerLower.includes('anteckningar')) post.anteckningar = value;
-            });
-            
-            console.log('Resulterande post:', post);
-            return post;
-        }
-        
-        function formatDatum(value) {
-            if (!value) return '';
-            
-            const valueTrimmed = String(value).trim();
-            
-            // Om det redan är i rätt format (YYYY-MM-DD)
-            if (/^\d{4}-\d{2}-\d{2}$/.test(valueTrimmed)) return valueTrimmed;
-            
-            // Månadsnamn på svenska till nummer
-            const manadMapping = {
-                'januari': '01', 'februari': '02', 'mars': '03', 'april': '04',
-                'maj': '05', 'juni': '06', 'juli': '07', 'augusti': '08',
-                'september': '09', 'oktober': '10', 'november': '11', 'december': '12'
-            };
-            
-            const valueLower = valueTrimmed.toLowerCase();
-            
-            // Kolla om det är bara ett månadsnamn
-            if (manadMapping[valueLower]) {
-                console.log('⚠️ Varning: Endast månadsnamn "' + value + '" - kan inte konvertera till fullständigt datum');
-                return ''; // Returnera tomt istället för fel värde
-            }
-            
-            // Excel seriellt datum (antal dagar sedan 1900-01-01)
-            if (!isNaN(valueTrimmed) && Number(valueTrimmed) > 1000) {
-                const excelEpoch = new Date(1899, 11, 30);
-                const date = new Date(excelEpoch.getTime() + Number(valueTrimmed) * 86400000);
-                if (!isNaN(date.getTime())) {
-                    return date.toISOString().split('T')[0];
-                }
-            }
-            
-            // Försök parsa olika format
-            const date = new Date(valueTrimmed);
-            if (!isNaN(date.getTime())) {
-                return date.toISOString().split('T')[0];
-            }
-            
-            // Om inget fungerar, returnera tomt istället för ogiltigt värde
-            console.log('⚠️ Kunde inte konvertera datum:', value);
-            return '';
-        }
-        
-        function visa() {
-            const sok = (document.getElementById('searchBox')?.value || '').toLowerCase();
-            const selectedYear = document.getElementById('yearFilter')?.value;
+        window.visa = function() {
+            const sok = document.getElementById('searchBox')?.value.toLowerCase() || '';
+            const year = document.getElementById('yearFilter')?.value;
             
             let filtrerad = data.filter(p => 
                 (p.vaxt || '').toLowerCase().includes(sok) ||
-                (p.sort || '').toLowerCase().includes(sok) ||
-                (p.anteckningar || '').toLowerCase().includes(sok)
+                (p.sort || '').toLowerCase().includes(sok)
             );
             
-            // Filtrera på år om valt
-            if (selectedYear) {
-                filtrerad = filtrerad.filter(p => String(p.ar) === selectedYear);
-            }
+            if (year) filtrerad = filtrerad.filter(p => String(p.ar) === year);
             
-            // Uppdatera årsfilter med tillgängliga år
+            // Uppdatera årsfilter
             const ar = [...new Set(data.map(p => p.ar || new Date().getFullYear()))].sort((a, b) => b - a);
             const yearFilter = document.getElementById('yearFilter');
             if (yearFilter) {
-                const currentValue = yearFilter.value;
+                const current = yearFilter.value;
                 yearFilter.innerHTML = '<option value="">Alla år</option>' + 
-                    ar.map(y => `<option value="${y}" ${currentValue === String(y) ? 'selected' : ''}>${y}</option>`).join('');
+                    ar.map(y => `<option value="${y}" ${current === String(y) ? 'selected' : ''}>${y}</option>`).join('');
             }
-        function visaDetalj(filteradData) {
-            visaDetaljLista(filteradData);
-        }
-        
-        window.visaDetaljLista = function(filtrerad) {
-            const container = document.getElementById('container');
-            if (!container) return;
             
-            if (filtrerad.length === 0) {
-                container.innerHTML = `
-                    <div class="empty">
-                        <div style="font-size: 4em; margin-bottom: 20px;">🌱</div>
-                        <h2>${sok ? 'Inga träffar' : 'Ingen data ännu'}</h2>
-                        <p>${sok ? 'Prova en annan sökning' : 'Klicka "Ny Sådd" för att börja!'}</p>
+            if (sok) {
+                visaDetaljer(filtrerad);
+            } else if (currentView === 'vaxtlista') {
+                visaVaxtlista(filtrerad);
+            } else if (currentView === 'sortlista') {
+                visaSortlista(filtrerad);
+            } else {
+                visaDetaljer(filtrerad);
+            }
+        };
+        
+        window.visaVaxtlista = function() {
+            currentView = 'vaxtlista';
+            selectedVaxt = null;
+            document.getElementById('breadcrumb').style.display = 'none';
+            
+            const year = document.getElementById('yearFilter')?.value;
+            let filtrerad = year ? data.filter(p => String(p.ar) === year) : data;
+            
+            const vaxter = {};
+            filtrerad.forEach(p => {
+                const v = p.vaxt || 'Okänd';
+                if (!vaxter[v]) vaxter[v] = [];
+                vaxter[v].push(p);
+            });
+            
+            const container = document.getElementById('container');
+            if (Object.keys(vaxter).length === 0) {
+                container.innerHTML = '<div class="empty"><h2>Ingen data</h2><p>Lägg till din första sådd!</p></div>';
+                return;
+            }
+            
+            container.innerHTML = Object.keys(vaxter).sort().map(v => {
+                const poster = vaxter[v];
+                const sorter = new Set(poster.map(p => p.sort)).size;
+                return `
+                    <div class="card" onclick="window.visaSortlistaFor('${v}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h2 style="color: #2d5016;">🌱 ${v}</h2>
+                                <p style="color: #666;">${sorter} ${sorter === 1 ? 'sort' : 'sorter'} • ${poster.length} ${poster.length === 1 ? 'sådd' : 'sådder'}</p>
+                            </div>
+                            <div style="font-size: 2em; color: #4caf50;">→</div>
+                        </div>
                     </div>
                 `;
+            }).join('');
+        };
+        
+        window.visaSortlistaFor = function(vaxt) {
+            currentView = 'sortlista';
+            selectedVaxt = vaxt;
+            document.getElementById('breadcrumb').style.display = 'block';
+            document.getElementById('breadcrumbPath').textContent = ` → ${vaxt}`;
+            
+            const year = document.getElementById('yearFilter')?.value;
+            let filtrerad = data.filter(p => p.vaxt === vaxt);
+            if (year) filtrerad = filtrerad.filter(p => String(p.ar) === year);
+            
+            const sorter = {};
+            filtrerad.forEach(p => {
+                const s = p.sort || 'Ingen sort';
+                if (!sorter[s]) sorter[s] = [];
+                sorter[s].push(p);
+            });
+            
+            const container = document.getElementById('container');
+            container.innerHTML = Object.keys(sorter).sort().map(s => {
+                const poster = sorter[s];
+                return `
+                    <div class="card" onclick="window.visaDetaljFor('${vaxt}', '${s.replace(/'/g, "\\'")}')">
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <h3 style="color: #2d5016;">${s}</h3>
+                                <p style="color: #666;">${poster.length} ${poster.length === 1 ? 'sådd' : 'sådder'}</p>
+                            </div>
+                            <div style="font-size: 2em; color: #4caf50;">→</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        };
+        
+        window.visaDetaljFor = function(vaxt, sort) {
+            currentView = 'detalj';
+            selectedVaxt = vaxt;
+            selectedSort = sort;
+            document.getElementById('breadcrumb').style.display = 'block';
+            document.getElementById('breadcrumbPath').textContent = ` → ${vaxt} → ${sort}`;
+            
+            const year = document.getElementById('yearFilter')?.value;
+            let filtrerad = data.filter(p => p.vaxt === vaxt && p.sort === sort);
+            if (year) filtrerad = filtrerad.filter(p => String(p.ar) === year);
+            
+            visaDetaljer(filtrerad);
+        };
+        
+        function visaDetaljer(filtrerad) {
+            const container = document.getElementById('container');
+            if (filtrerad.length === 0) {
+                container.innerHTML = '<div class="empty"><h2>Inga träffar</h2></div>';
                 return;
             }
             
             container.innerHTML = filtrerad.map(p => `
-                <div class="card">
-                    <div class="card-header">
-                        <div class="card-title">
-                            ${p.vaxt || 'Ny växt'} ${p.sort ? '- ' + p.sort : ''}
+                <div style="background: white; padding: 25px; margin-bottom: 20px; border-radius: 10px;">
+                    <h3 style="color: #2d5016; margin-bottom: 15px;">${p.vaxt || 'Växt'} ${p.sort ? '- ' + p.sort : ''}</h3>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+                        <div>
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Växt</label>
+                            <input value="${p.vaxt || ''}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
-                        <button class="btn btn-delete" onclick="radera('${p.firebaseId}')">🗑️ Ta bort</button>
-                    </div>
-                    <div class="grid">
-                        <div class="field">
-                            <label>Växt/Grönsak</label>
-                            <input value="${p.vaxt || ''}" onchange="uppdatera('${p.firebaseId}', 'vaxt', this.value)" placeholder="t.ex. Tomat">
+                        <div>
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Sort</label>
+                            <input value="${p.sort || ''}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
-                        <div class="field">
-                            <label>Sort</label>
-                            <input value="${p.sort || ''}" onchange="uppdatera('${p.firebaseId}', 'sort', this.value)" placeholder="t.ex. Bovictus">
+                        <div>
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">Datum sådd</label>
+                            <input type="date" value="${p.saddDatum || ''}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
-                        <div class="field">
-                            <label>Datum sådd</label>
-                            <input type="date" value="${p.saddDatum || ''}" onchange="uppdatera('${p.firebaseId}', 'saddDatum', this.value)">
+                        <div>
+                            <label style="font-weight: bold; display: block; margin-bottom: 5px;">År</label>
+                            <input type="number" value="${p.ar || new Date().getFullYear()}" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 5px;">
                         </div>
-                        <div class="field">
-                            <label>Antal frön</label>
-                            <input type="number" value="${p.antalFron || ''}" onchange="uppdatera('${p.firebaseId}', 'antalFron', this.value)">
-                        </div>
-                        <div class="field">
-                            <label>Plats</label>
-                            <input value="${p.plats || ''}" onchange="uppdatera('${p.firebaseId}', 'plats', this.value)" placeholder="t.ex. Inne">
-                        </div>
-                        <div class="field">
-                            <label>Datum grodd</label>
-                            <input type="date" value="${p.groddDatum || ''}" onchange="uppdatera('${p.firebaseId}', 'groddDatum', this.value)">
-                        </div>
-                        <div class="field">
-                            <label>Dagar till grodd (auto)</label>
-                            <input type="number" value="${p.dagarGrodd || ''}" readonly>
-                        </div>
-                        <div class="field">
-                            <label>Antal grodda</label>
-                            <input type="number" value="${p.antalGrodda || ''}" onchange="uppdatera('${p.firebaseId}', 'antalGrodda', this.value)">
-                        </div>
-                        <div class="field">
-                            <label>Grobarhets-% (auto)</label>
-                            <input value="${p.grobarhet || ''}" readonly>
-                        </div>
-                        <div class="field">
-                            <label>Datum utplantering</label>
-                            <input type="date" value="${p.utplantering || ''}" onchange="uppdatera('${p.firebaseId}', 'utplantering', this.value)">
-                        </div>
-                        <div class="field">
-                            <label>Datum första skörd</label>
-                            <input type="date" value="${p.skord || ''}" onchange="uppdatera('${p.firebaseId}', 'skord', this.value)">
-                        </div>
-                        <div class="field">
-                            <label>Rekommenderad sådd</label>
-                            <input value="${p.rekSadd || ''}" onchange="uppdatera('${p.firebaseId}', 'rekSadd', this.value)" placeholder="t.ex. Mars-April">
-                        </div>
-                        <div class="field">
-                            <label>Rekommenderad skörd</label>
-                            <input value="${p.rekSkord || ''}" onchange="uppdatera('${p.firebaseId}', 'rekSkord', this.value)" placeholder="t.ex. Juli-Augusti">
-                        </div>
-                        <div class="field">
-                            <label>Omskolning (datum)</label>
-                            <input type="date" value="${p.omskolning || ''}" onchange="uppdatera('${p.firebaseId}', 'omskolning', this.value)">
-                        </div>
-                        <div class="field">
-                            <label>Påminnelse</label>
-                            <input type="date" value="${p.paminnelse || ''}" onchange="uppdatera('${p.firebaseId}', 'paminnelse', this.value)" placeholder="Välj datum för påminnelse">
-                        </div>
-                        <div class="field">
-                            <label>Påminnelse-text</label>
-                            <input value="${p.paminnelseText || ''}" onchange="uppdatera('${p.firebaseId}', 'paminnelseText', this.value)" placeholder="t.ex. Dags att plantera ut">
-                        </div>
-                        <div class="field">
-                            <label>Odlingssäsong (år)</label>
-                            <input type="number" value="${p.ar || new Date().getFullYear()}" onchange="uppdatera('${p.firebaseId}', 'ar', this.value)" placeholder="${new Date().getFullYear()}">
-                        </div>
-                    </div>
-                    <div class="images">
-                        <label><strong>📷 Bilder</strong></label>
-                        <div class="image-grid">
-                            ${(p.bilder || []).map((img, i) => `
-                                <div class="img-wrap">
-                                    <img src="${img}" onclick="visaBild('${img}')">
-                                    <button onclick="taBortBild('${p.firebaseId}', ${i})">×</button>
-                                </div>
-                            `).join('')}
-                        </div>
-                        <div style="margin-top: 10px; display: flex; gap: 10px; flex-wrap: wrap;">
-                            <label class="upload-btn">
-                                📁 Välj bilder
-                                <input type="file" accept="image/*" multiple style="display:none" 
-                                    onchange="laddaBilder('${p.firebaseId}', this.files)">
-                            </label>
-                            <label class="upload-btn" style="background: #ff9800;">
-                                📸 Ta foto
-                                <input type="file" accept="image/*" capture="environment" style="display:none" 
-                                    onchange="laddaBilder('${p.firebaseId}', this.files)">
-                            </label>
-                        </div>
-                    </div>
-                    <div class="field">
-                        <label>Anteckningar</label>
-                        <textarea onchange="uppdatera('${p.firebaseId}', 'anteckningar', this.value)">${p.anteckningar || ''}</textarea>
                     </div>
                 </div>
             `).join('');
         }
         
-        // Kolla om config finns sparad eller kom via QR-kod
-        const savedConfig = localStorage.getItem('firebaseConfig');
-        if (savedConfig) {
+        function initFirebase(config) {
             try {
-                const config = JSON.parse(savedConfig);
-                document.getElementById('apiKey').value = config.apiKey;
-                document.getElementById('authDomain').value = config.authDomain;
-                document.getElementById('projectId').value = config.projectId;
-                document.getElementById('storageBucket').value = config.storageBucket;
-                document.getElementById('messagingSenderId').value = config.messagingSenderId;
-                document.getElementById('appId').value = config.appId;
-                initFirebase(config);
-            } catch (e) {
-                console.error('Kunde inte ladda sparad config:', e);
+                const app = initializeApp(config);
+                db = getFirestore(app);
+                auth = getAuth(app);
+                
+                onAuthStateChanged(auth, (user) => {
+                    if (user) {
+                        currentUser = user;
+                        document.getElementById('userEmail').textContent = user.email;
+                        document.getElementById('setupSection').style.display = 'none';
+                        document.getElementById('loginSection').style.display = 'none';
+                        document.getElementById('appContent').style.display = 'block';
+                        window.laddaData();
+                        
+                        onSnapshot(collection(db, 'fron'), (snapshot) => {
+                            data = [];
+                            snapshot.forEach(doc => data.push({ firebaseId: doc.id, ...doc.data() }));
+                            data.sort((a, b) => new Date(b.skapad || 0) - new Date(a.skapad || 0));
+                            window.visa();
+                        });
+                    } else {
+                        document.getElementById('setupSection').style.display = 'none';
+                        document.getElementById('loginSection').style.display = 'block';
+                        document.getElementById('appContent').style.display = 'none';
+                    }
+                });
+            } catch (error) {
+                alert('Firebase-fel: ' + error.message);
             }
-        } else {
-            // Kolla om vi kom hit via QR-kod
-            kollaQRConfig();
         }
         
-        const searchBox = document.getElementById('searchBox');
-        if (searchBox) {
-            searchBox.oninput = visa;
+        // Starta
+        const savedConfig = localStorage.getItem('firebaseConfig');
+        if (savedConfig) {
+            initFirebase(JSON.parse(savedConfig));
+        } else {
+            document.getElementById('setupSection').style.display = 'block';
         }
+        
+        document.getElementById('searchBox')?.addEventListener('input', window.visa);
     </script>
 </body>
 </html>
