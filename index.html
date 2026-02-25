@@ -407,6 +407,13 @@
                 <button class="btn btn-secondary" onclick="visaPaminnelser()">🔔 Påminnelser</button>
             </div>
             
+            <div id="breadcrumb" style="display: none; background: white; padding: 15px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">
+                <div style="display: flex; align-items: center; gap: 10px; flex-wrap: wrap;">
+                    <span style="color: #666; cursor: pointer;" onclick="visaVaxtlista()">🏠 Hem</span>
+                    <span id="breadcrumbPath" style="color: #4caf50; font-weight: bold;"></span>
+                </div>
+            </div>
+            
             <div id="paminnelserSection" style="display: none; background: #fff3cd; border: 2px solid #ffc107; border-radius: 8px; padding: 15px; margin-bottom: 20px;">
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
                     <h3 style="margin: 0;">🔔 Kommande påminnelser</h3>
@@ -438,6 +445,9 @@
         let data = [];
         let unsubscribe;
         let currentUser = null;
+        let currentView = 'vaxtlista'; // 'vaxtlista', 'sortlista', 'detalj'
+        let selectedVaxt = null;
+        let selectedSort = null;
         
         window.sparaConfig = function() {
             const config = {
@@ -750,6 +760,12 @@
                 console.log('🔴 Skapar post i Firebase...', post);
                 const docRef = await addDoc(collection(db, 'fron'), post);
                 console.log('✅ Post skapad med ID:', docRef.id);
+                
+                // Visa detaljvy för nya posten
+                currentView = 'detalj';
+                selectedVaxt = null;
+                selectedSort = null;
+                
                 // Data uppdateras automatiskt via onSnapshot-lyssnaren
             } catch (error) {
                 console.error('❌ Fel vid skapande av post:', error);
@@ -1391,7 +1407,11 @@
                 yearFilter.innerHTML = '<option value="">Alla år</option>' + 
                     ar.map(y => `<option value="${y}" ${currentValue === String(y) ? 'selected' : ''}>${y}</option>`).join('');
             }
-            
+        function visaDetalj(filteradData) {
+            visaDetaljLista(filteradData);
+        }
+        
+        window.visaDetaljLista = function(filtrerad) {
             const container = document.getElementById('container');
             if (!container) return;
             
