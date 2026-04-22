@@ -413,7 +413,17 @@
         .qr-box h4 { color: var(--cream); font-family: 'Playfair Display', serif; margin-bottom: 8px; }
         .qr-box p { color: var(--sage); font-size: 0.83em; }
 
-        /* Scrollbars */
+        /* ===== EMOJI BUTTON ===== */
+        .emoji-preview-btn {
+            width: 58px; height: 58px; border-radius: 16px;
+            background: rgba(200,218,168,0.08); border: 2px solid var(--border);
+            font-size: 1.8em; cursor: pointer; display: flex; align-items: center; justify-content: center;
+            transition: all 0.18s; flex-shrink: 0;
+        }
+        .emoji-preview-btn:active { background: rgba(200,218,168,0.15); border-color: var(--sage); }
+
+        .new-kat-row { display: flex; gap: 10px; align-items: flex-end; }
+        .new-kat-row .fi { flex: 1; }
         ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
         ::-webkit-scrollbar-thumb { background: rgba(200,218,168,0.12); border-radius: 2px; }
@@ -662,12 +672,31 @@
         <div class="sheet-title">🌿 Ny växttyp</div>
         <div class="sheet-sub">Skapa en ny kategori</div>
         <div class="sheet-field">
-            <label class="lbl">Namn på växttyp</label>
-            <input type="text" class="fi" id="newKatName" placeholder="t.ex. Tomater, Gurkor, Örter..." onkeypress="if(event.key==='Enter')sparaKategori()">
+            <label class="lbl">Namn &amp; emoji</label>
+            <div class="new-kat-row">
+                <button class="emoji-preview-btn" id="newKatEmoji" onclick="visaEmojiPickerNy()">🌱</button>
+                <input type="text" class="fi" id="newKatName" placeholder="t.ex. Tomater, Gurkor, Örter..." onkeypress="if(event.key==='Enter')sparaKategori()">
+            </div>
         </div>
+        <!-- Inline emoji picker (hidden by default) -->
+        <div id="emojiPickerNy" style="display:none;margin-top:10px;max-height:220px;overflow-y:auto;"></div>
         <div class="sheet-actions">
             <button class="btn btn-secondary" onclick="stangSheet('addKatSheet')" style="flex:1;">Avbryt</button>
             <button class="btn btn-primary" onclick="sparaKategori()" style="flex:2;">✅ Skapa</button>
+        </div>
+    </div>
+</div>
+
+<!-- EMOJI SHEET (change emoji for existing category) -->
+<div class="overlay" id="emojiSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">Välj emoji</div>
+        <div class="sheet-sub">för <strong id="emojiSheetCatName"></strong></div>
+        <input type="hidden" id="emojiSheetCatNameData">
+        <div id="emojiPickerGrid" style="max-height:55vh;overflow-y:auto;margin-top:4px;"></div>
+        <div class="sheet-actions">
+            <button class="btn btn-secondary btn-full" onclick="stangSheet('emojiSheet')">Avbryt</button>
         </div>
     </div>
 </div>
@@ -687,11 +716,20 @@
 
     let db, auth;
     let data = [];
-    let categories = [];
+    let categories = []; // [{name, emoji}]
     let selectedYear = '';
     let selectedCat = null;
     let selectedPostId = null;
     let currentNavScreen = 'home';
+
+    // Emoji categories for picker
+    const EMOJI_GROUPS = [
+        { label: 'Grönsaker', emojis: ['🍅','🥒','🫑','🥬','🧅','🥕','🌽','🧄','🥦','🫛','🥑','🫚','🥝','🍆','🌶️','🫒'] },
+        { label: 'Frukter', emojis: ['🍓','🫐','🍇','🍋','🍊','🍎','🍐','🍑','🍒','🍌','🍍','🥭','🍉','🍈','🍏','🥝'] },
+        { label: 'Växter', emojis: ['🌿','🌱','🌾','🍃','🌲','🌳','🌴','🪴','🪻','🌸','🌺','🌻','🌼','💐','🌹','🍀'] },
+        { label: 'Mat & Örter', emojis: ['🫖','🍵','🌰','🫘','🥜','🫚','🧆','🥗','🥙','🥘','🫕','🌮','🥣','🍄','🫙','🧂'] },
+        { label: 'Natur', emojis: ['☀️','🌤️','🌧️','❄️','🌈','🌊','🏔️','🌙','⭐','🔥','💧','🍂','🍁','🌍','🦋','🐝'] },
+    ];
 
     // ============================================================
     // NAVIGATION
@@ -735,7 +773,9 @@
         document.getElementById('screenHome').classList.remove('active');
         document.getElementById('screenSortList').classList.add('active');
         document.getElementById('mainTopbar').style.display = 'flex';
-        document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack()">‹</span> ${escHtml(cat)}`;
+        const catObj = categories.find(c => c.name === cat);
+        const icon = catObj ? catObj.emoji : '🌱';
+        document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack2()">‹</span> ${icon} ${escHtml(cat)}`;
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('nav-home').classList.add('active');
         document.getElementById('fabBtn').classList.remove('hidden');
@@ -758,7 +798,9 @@
         document.getElementById('screenDetail').classList.remove('active');
         if (selectedCat) {
             document.getElementById('screenSortList').classList.add('active');
-            document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack2()">‹</span> ${escHtml(selectedCat)}`;
+            const catObj = categories.find(c => c.name === selectedCat);
+            const icon = catObj ? catObj.emoji : '🌱';
+            document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack2()">‹</span> ${icon} ${escHtml(selectedCat)}`;
             document.getElementById('fabBtn').classList.remove('hidden');
             renderCatSortList();
         } else {
@@ -813,7 +855,9 @@
                     document.getElementById('settingsEmail').textContent = user.email;
 
                     const savedCats = localStorage.getItem('froCategories');
-                    categories = savedCats ? JSON.parse(savedCats) : [];
+                    const raw = savedCats ? JSON.parse(savedCats) : [];
+                    // Migrate from old string array format
+                    categories = raw.map(c => typeof c === 'string' ? {name: c, emoji: '🌱'} : c);
 
                     onSnapshot(collection(db, 'fron'), snapshot => {
                         data = [];
@@ -822,7 +866,7 @@
 
                         data.forEach(p => {
                             const name = (p.vaxt||'').trim();
-                            if (name && !categories.includes(name)) categories.push(name);
+                            if (name && !categories.find(c => c.name === name)) categories.push({name, emoji: '🌱'});
                         });
                         saveCategories();
 
@@ -924,17 +968,12 @@
     function renderCatRow() {
         const filtered = getFilteredData();
         const row = document.getElementById('catRow');
-        const catIcons = { 'Tomat': '🍅','Tomater': '🍅', 'Gurka': '🥒','Gurkor': '🥒', 'Paprika': '🫑', 'Sallad': '🥬', 'Örter': '🌿', 'Squash': '🎃', 'Lök': '🧅', 'Morötter': '🥕', 'Blommor': '🌸', 'Frukter': '🍓', 'Chili': '🌶️', 'Majs': '🌽', 'Kål': '🥬', 'Melon': '🍈' };
-        const getIcon = (name) => {
-            for (const [k,v] of Object.entries(catIcons)) { if (name.toLowerCase().includes(k.toLowerCase())) return v; }
-            return '🌱';
-        };
 
         row.innerHTML = categories.map(cat => {
-            const count = filtered.filter(p => (p.vaxt||'').trim() === cat).length;
-            return `<div class="cat-chip" onclick="goSortList('${escAttr(cat)}')">
-                <span class="cat-icon">${getIcon(cat)}</span>
-                <span class="cat-name">${escHtml(cat)}</span>
+            const count = filtered.filter(p => (p.vaxt||'').trim() === cat.name).length;
+            return `<div class="cat-chip" onclick="goSortList('${escAttr(cat.name)}')">
+                <span class="cat-icon" onclick="event.stopPropagation();visaEmojiSheet('${escAttr(cat.name)}')" title="Ändra emoji">${cat.emoji||'🌱'}</span>
+                <span class="cat-name">${escHtml(cat.name)}</span>
                 <span class="cat-n">${count} st</span>
             </div>`;
         }).join('') +
@@ -1174,15 +1213,56 @@
         document.getElementById('popupDatum').value = '';
         document.getElementById('popupNyKat').value = '';
         const sel = document.getElementById('popupKat');
-        sel.innerHTML = '<option value="">— Välj befintlig —</option>' + categories.map(c => `<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('');
+        sel.innerHTML = '<option value="">— Välj befintlig —</option>' + categories.map(c => `<option value="${escAttr(c.name)}">${c.emoji} ${escHtml(c.name)}</option>`).join('');
         if (selectedCat) sel.value = selectedCat;
         visaSheet('nySaddSheet');
     };
 
     window.visaAddKatSheet = function() {
         document.getElementById('newKatName').value = '';
+        document.getElementById('newKatEmoji').textContent = '🌱';
         visaSheet('addKatSheet');
         setTimeout(() => document.getElementById('newKatName').focus(), 200);
+    };
+
+    window.visaEmojiPickerNy = function() {
+        const picker = document.getElementById('emojiPickerNy');
+        if (picker.style.display === 'none') {
+            renderEmojiPicker('emojiPickerNy', 'valjEmojiNy');
+            picker.style.display = 'block';
+        } else {
+            picker.style.display = 'none';
+        }
+    };
+
+    window.visaEmojiSheet = function(catName) {
+        document.getElementById('emojiSheetCatName').textContent = catName;
+        document.getElementById('emojiSheetCatNameData').value = catName;
+        renderEmojiPicker('emojiPickerGrid', 'valjEmojiSheet');
+        visaSheet('emojiSheet');
+    };
+
+    function renderEmojiPicker(containerId, onSelectFn) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = EMOJI_GROUPS.map(g => `
+            <div style="margin-bottom:12px;">
+                <div style="font-size:0.7em;font-weight:600;color:var(--sage);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">${g.label}</div>
+                <div style="display:flex;flex-wrap:wrap;gap:4px;">
+                    ${g.emojis.map(e => `<button onclick="${onSelectFn}('${e}')" style="background:rgba(200,218,168,0.07);border:1.5px solid var(--border);border-radius:8px;width:42px;height:42px;font-size:1.35em;cursor:pointer;display:flex;align-items:center;justify-content:center;">${e}</button>`).join('')}
+                </div>
+            </div>`).join('');
+    }
+
+    window.valjEmojiNy = function(emoji) {
+        document.getElementById('newKatEmoji').textContent = emoji;
+        document.getElementById('emojiPickerNy').style.display = 'none';
+    };
+
+    window.valjEmojiSheet = function(emoji) {
+        const catName = document.getElementById('emojiSheetCatNameData').value;
+        const cat = categories.find(c => c.name === catName);
+        if (cat) { cat.emoji = emoji; saveCategories(); renderCatRow(); }
+        stangSheet('emojiSheet');
     };
 
     window.visaSheet = function(id) { document.getElementById(id).classList.add('show'); };
@@ -1190,9 +1270,10 @@
 
     window.sparaKategori = function() {
         const name = document.getElementById('newKatName').value.trim();
+        const emoji = document.getElementById('newKatEmoji').textContent || '🌱';
         if (!name) { alert('Ange ett namn'); return; }
-        if (categories.includes(name)) { alert('Kategorin finns redan'); return; }
-        categories.push(name);
+        if (categories.find(c => c.name === name)) { alert('Kategorin finns redan'); return; }
+        categories.push({name, emoji});
         saveCategories();
         stangSheet('addKatSheet');
         renderCatRow();
@@ -1205,7 +1286,7 @@
         const befintligKat = document.getElementById('popupKat').value;
         const vaxt = nyKat || befintligKat;
         if (!vaxt) { alert('Välj eller ange en växttyp'); return; }
-        if (nyKat && !categories.includes(nyKat)) { categories.push(nyKat); saveCategories(); }
+        if (nyKat && !categories.find(c => c.name === nyKat)) { categories.push({name: nyKat, emoji: '🌱'}); saveCategories(); }
 
         const post = {
             id: Date.now(), vaxt, sort: document.getElementById('popupSort').value.trim(),
@@ -1246,7 +1327,7 @@
         }
         if (falt === 'vaxt') {
             const newName = varde.trim();
-            if (newName && !categories.includes(newName)) { categories.push(newName); saveCategories(); }
+            if (newName && !categories.find(c => c.name === newName)) { categories.push({name: newName, emoji: '🌱'}); saveCategories(); }
         }
 
         try {
@@ -1386,14 +1467,14 @@
                 for (let i=1;i<lines.length;i++) {
                     const vals = sep===';' ? lines[i].split(';').map(v=>v.trim().replace(/^"|"$/g,'')) : parseCSVLine(lines[i]);
                     const post = mappaRad(headers,vals);
-                    if (post.vaxt||post.sort) { await addDoc(collection(db,'fron'),post); imported++; if(post.vaxt&&!categories.includes(post.vaxt)){categories.push(post.vaxt);} }
+                    if (post.vaxt||post.sort) { await addDoc(collection(db,'fron'),post); imported++; if(post.vaxt&&!categories.find(c=>c.name===post.vaxt)){categories.push({name:post.vaxt,emoji:'🌱'});} }
                 }
             } else if (name.endsWith('.xlsx')||name.endsWith('.xls')) {
                 const wb = XLSX.read(await file.arrayBuffer());
                 const rows = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]]);
                 for (const row of rows) {
                     const post = {id:Date.now()+Math.random(),vaxt:row['Växt']||'',sort:row['Sort']||'',saddDatum:formatDatum(row['Datum Sådd']||''),antalFron:String(row['Antal Frön']||''),plats:row['Plats']||'',groddDatum:formatDatum(row['Datum Grodd']||''),dagarGrodd:String(row['Dagar till Grodd']||''),antalGrodda:String(row['Antal Grodda']||''),grobarhet:row['Grobarhets-%']||'',utplantering:formatDatum(row['Datum Utplantering']||''),skord:formatDatum(row['Datum Första Skörd']||''),rekSadd:row['Rekommenderad Sådd']||'',rekSkord:row['Rekommenderad Skörd']||'',omskolning:formatDatum(row['Omskolning']||''),paminnelse:'',paminnelseText:'',anteckningar:row['Anteckningar']||'',ar:new Date().getFullYear(),bilder:[],skapad:new Date().toISOString()};
-                    if (post.vaxt||post.sort) { await addDoc(collection(db,'fron'),post); imported++; if(post.vaxt&&!categories.includes(post.vaxt)){categories.push(post.vaxt);} }
+                    if (post.vaxt||post.sort) { await addDoc(collection(db,'fron'),post); imported++; if(post.vaxt&&!categories.find(c=>c.name===post.vaxt)){categories.push({name:post.vaxt,emoji:'🌱'});} }
                 }
             }
             saveCategories();
