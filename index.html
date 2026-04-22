@@ -2,8 +2,12 @@
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Frö- och Såddloggbok</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#1a1e13">
+    <title>Frö & Sådd</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -21,610 +25,657 @@
             --card-bg: rgba(200,218,168,0.06);
             --border: rgba(200,218,168,0.12);
             --border-hover: rgba(200,218,168,0.28);
+            --nav-h: 64px;
+            --topbar-h: 54px;
+            --safe-bottom: env(safe-area-inset-bottom, 0px);
         }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
-        body {
+        html, body {
             font-family: 'DM Sans', sans-serif;
             background: var(--soil);
             color: var(--cream);
-            height: 100vh;
+            height: 100%;
             overflow: hidden;
+            overscroll-behavior: none;
         }
 
-        /* ===== SETUP / LOGIN (full screen) ===== */
-        #setupSection, #loginSection {
-            position: fixed; inset: 0; z-index: 50;
-            background: linear-gradient(150deg, #111a09 0%, #1a2610 50%, #0e1a0a 100%);
-            display: flex; align-items: center; justify-content: center;
-            padding: 20px;
+        /* ===== AUTH SCREENS ===== */
+        .auth-screen {
+            position: fixed; inset: 0; z-index: 100;
+            background: linear-gradient(160deg, #111a09 0%, #1a2610 60%, #0e1a0a 100%);
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+            padding: 40px 20px 40px;
             overflow-y: auto;
         }
 
-        .auth-box {
+        .auth-logo { text-align: center; margin-bottom: 28px; padding-top: 20px; }
+        .auth-logo .icon { font-size: 3.2em; display: block; margin-bottom: 10px; }
+        .auth-logo h1 { font-family: 'Playfair Display', serif; font-size: 2em; color: var(--cream); margin-bottom: 4px; }
+        .auth-logo p { color: var(--sage); font-size: 0.9em; font-weight: 300; }
+
+        .auth-card {
             background: rgba(200,218,168,0.05);
             border: 1.5px solid var(--border);
             border-radius: 20px;
-            padding: 36px;
-            width: 100%; max-width: 500px;
-        }
-
-        .auth-logo { text-align: center; margin-bottom: 28px; }
-        .auth-logo .icon { font-size: 3em; display: block; margin-bottom: 10px; }
-        .auth-logo h1 { font-family: 'Playfair Display', serif; font-size: 1.9em; color: var(--cream); margin-bottom: 4px; }
-        .auth-logo p { color: var(--sage); font-size: 0.9em; font-weight: 300; }
-
-        .setup-step {
-            background: rgba(200,218,168,0.04);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 18px 20px;
+            padding: 24px 20px;
+            width: 100%; max-width: 480px;
             margin-bottom: 14px;
         }
 
-        .setup-step h3 { font-family: 'Playfair Display', serif; font-size: 1.05em; color: var(--mist); margin-bottom: 10px; }
-        .setup-step ol { padding-left: 18px; color: var(--sage); font-size: 0.87em; line-height: 2; }
-        .setup-step code { background: rgba(122,170,92,0.2); color: var(--sage); padding: 1px 6px; border-radius: 4px; font-family: monospace; }
-        .setup-step a { color: var(--sage); }
+        .auth-card h3 { font-family: 'Playfair Display', serif; font-size: 1em; color: var(--mist); margin-bottom: 10px; }
+        .auth-card ol { padding-left: 18px; color: var(--sage); font-size: 0.84em; line-height: 2; }
+        .auth-card code { background: rgba(122,170,92,0.2); color: var(--sage); padding: 1px 6px; border-radius: 4px; font-family: monospace; }
+        .auth-card a { color: var(--sage); }
 
-        label.field-lbl { display: block; font-size: 0.75em; font-weight: 600; color: var(--sage); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; margin-top: 10px; }
+        /* ===== INPUTS ===== */
+        .lbl { display: block; font-size: 0.72em; font-weight: 600; color: var(--sage); text-transform: uppercase; letter-spacing: 0.07em; margin-bottom: 5px; margin-top: 12px; }
 
-        input.cfg {
-            width: 100%; padding: 10px 13px;
+        input.cfg, input.fi, textarea.fi, select.fi {
+            width: 100%; padding: 13px 14px;
             background: rgba(200,218,168,0.07); border: 1.5px solid var(--border);
-            border-radius: 9px; color: var(--cream); font-family: monospace; font-size: 0.86em;
+            border-radius: 12px; color: var(--cream); font-family: 'DM Sans', sans-serif; font-size: 0.95em;
         }
-        input.cfg:focus { outline: none; border-color: var(--sage); }
-        input.cfg::placeholder { color: rgba(200,218,168,0.25); }
+        input.cfg { font-family: monospace; font-size: 0.87em; }
+        input.cfg:focus, input.fi:focus, textarea.fi:focus, select.fi:focus { outline: none; border-color: var(--sage); background: rgba(200,218,168,0.1); }
+        input.cfg::placeholder, input.fi::placeholder, textarea.fi::placeholder { color: rgba(200,218,168,0.25); }
+        input.fi[readonly] { opacity: 0.5; }
+        textarea.fi { min-height: 90px; resize: vertical; }
+        select.fi option { background: #1e2618; }
 
+        /* ===== BUTTONS ===== */
         .btn {
-            padding: 11px 22px; border: none; border-radius: 10px; cursor: pointer;
-            font-family: 'DM Sans', sans-serif; font-size: 0.9em; font-weight: 600;
-            transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px;
+            padding: 13px 20px; border: none; border-radius: 12px; cursor: pointer;
+            font-family: 'DM Sans', sans-serif; font-size: 0.93em; font-weight: 600;
+            transition: all 0.18s; display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+            -webkit-user-select: none; user-select: none;
         }
+        .btn:active { transform: scale(0.96); }
         .btn-primary { background: linear-gradient(135deg, var(--leaf), var(--moss)); color: white; box-shadow: 0 4px 14px rgba(78,122,46,0.35); }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(78,122,46,0.45); }
         .btn-secondary { background: rgba(200,218,168,0.1); color: var(--mist); border: 1px solid var(--border); }
-        .btn-secondary:hover { background: rgba(200,218,168,0.16); }
-        .btn-gold { background: linear-gradient(135deg, var(--gold), #9a6e28); color: white; }
         .btn-danger { background: rgba(140,58,32,0.2); color: #e0764e; border: 1px solid rgba(140,58,32,0.3); }
-        .btn-danger:hover { background: rgba(140,58,32,0.35); }
-        .btn-sm { padding: 6px 14px; font-size: 0.82em; }
-        .btn-icon { padding: 7px 10px; font-size: 0.85em; }
+        .btn-full { width: 100%; }
+        .btn-sm { padding: 9px 16px; font-size: 0.84em; }
+        .btn-icon { padding: 10px 13px; font-size: 0.9em; }
 
-        /* ===== MAIN LAYOUT ===== */
+        /* ===== APP SHELL ===== */
         #appShell {
             display: none;
-            height: 100vh;
+            position: fixed; inset: 0;
             flex-direction: column;
         }
 
-        /* TOP BAR */
+        /* ===== TOP BAR ===== */
         .topbar {
-            height: 54px;
-            background: rgba(30,38,24,0.95);
+            height: var(--topbar-h);
+            background: rgba(30,38,24,0.98);
             border-bottom: 1px solid var(--border);
             display: flex; align-items: center;
-            padding: 0 18px; gap: 12px;
+            padding: 0 16px; gap: 10px;
             flex-shrink: 0;
-            backdrop-filter: blur(10px);
+            backdrop-filter: blur(12px);
+            padding-top: env(safe-area-inset-top, 0px);
         }
 
-        .topbar-logo { display: flex; align-items: center; gap: 9px; }
-        .topbar-logo .icon { font-size: 1.4em; }
-        .topbar-logo span { font-family: 'Playfair Display', serif; font-size: 1.1em; color: var(--mist); }
-
-        .topbar-spacer { flex: 1; }
+        .topbar-title { font-family: 'Playfair Display', serif; font-size: 1.15em; color: var(--mist); flex: 1; }
+        .topbar-back { color: var(--sage); font-size: 1.2em; padding: 4px 8px 4px 0; cursor: pointer; }
 
         .user-chip {
             background: rgba(200,218,168,0.08); border: 1px solid var(--border);
-            color: var(--sage); padding: 4px 12px; border-radius: 20px; font-size: 0.8em;
+            color: var(--sage); padding: 5px 12px; border-radius: 20px; font-size: 0.75em;
+            max-width: 130px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
-        /* THREE-COLUMN BODY */
-        .body-layout {
-            display: flex;
+        /* ===== MAIN CONTENT AREA ===== */
+        .screen-area {
             flex: 1;
             overflow: hidden;
+            position: relative;
         }
 
-        /* LEFT PANEL: Year selector + Category list */
-        .panel-left {
-            width: 300px;
+        /* ===== SCREENS ===== */
+        .screen {
+            position: absolute; inset: 0;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            display: none;
+            padding-bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px);
+        }
+        .screen.active { display: block; }
+
+        /* ===== BOTTOM NAV ===== */
+        .bottom-nav {
+            height: calc(var(--nav-h) + var(--safe-bottom));
+            padding-bottom: var(--safe-bottom);
+            background: rgba(30,38,24,0.98);
+            border-top: 1px solid var(--border);
+            display: flex;
             flex-shrink: 0;
-            background: var(--panel-bg);
-            border-right: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
+            backdrop-filter: blur(12px);
         }
 
-        .panel-section-title {
-            font-size: 0.7em;
-            font-weight: 600;
-            color: var(--sage);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-            padding: 14px 14px 6px;
-            opacity: 0.8;
-        }
-
-        /* Year selector */
-        .year-selector {
-            padding: 8px 10px;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .year-select {
-            width: 100%; padding: 8px 11px;
-            background: rgba(200,218,168,0.07); border: 1.5px solid var(--border);
-            border-radius: 8px; color: var(--cream); font-family: 'DM Sans', sans-serif;
-            font-size: 0.9em; cursor: pointer;
-        }
-        .year-select:focus { outline: none; border-color: var(--sage); }
-        .year-select option { background: #1e2618; }
-
-        /* Category list */
-        .cat-list { flex: 1; overflow-y: auto; padding: 6px 8px; }
-
-        .cat-item {
-            padding: 9px 11px;
-            border-radius: 9px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.18s;
-            margin-bottom: 2px;
-            color: var(--mist);
-            font-size: 0.92em;
-        }
-        .cat-item:hover { background: rgba(200,218,168,0.09); }
-        .cat-item.active { background: rgba(122,170,92,0.18); color: var(--cream); }
-        .cat-item.active .cat-name { color: var(--cream); font-weight: 600; }
-
-        .cat-name { flex: 1; }
-        .cat-count {
-            font-size: 0.75em; background: rgba(200,218,168,0.12);
-            border-radius: 10px; padding: 2px 7px; color: var(--sage);
-        }
-        .cat-item.active .cat-count { background: rgba(122,170,92,0.25); color: var(--sage); }
-
-        .cat-delete-btn {
-            width: 20px; height: 20px; border-radius: 50%;
-            background: transparent; border: none; color: rgba(200,218,168,0.3);
-            cursor: pointer; font-size: 0.9em; display: none;
+        .nav-btn {
+            flex: 1; display: flex; flex-direction: column;
             align-items: center; justify-content: center;
-            margin-left: 4px;
+            gap: 4px; cursor: pointer; background: none; border: none;
+            color: rgba(200,218,168,0.45); font-family: 'DM Sans', sans-serif;
+            font-size: 0.68em; font-weight: 500; transition: color 0.2s;
+            padding: 0;
         }
-        .cat-item:hover .cat-delete-btn { display: flex; }
-        .cat-delete-btn:hover { background: rgba(140,58,32,0.3); color: #e0764e; }
+        .nav-btn .nav-icon { font-size: 1.55em; line-height: 1; }
+        .nav-btn.active { color: var(--sage); }
+        .nav-btn:active { color: var(--mist); }
 
-        .cat-add-btn {
-            margin: 8px;
-            width: calc(100% - 16px);
-            padding: 8px;
-            background: rgba(200,218,168,0.06);
-            border: 1.5px dashed rgba(200,218,168,0.2);
-            border-radius: 9px;
-            color: var(--sage);
-            font-size: 0.85em;
-            cursor: pointer;
-            text-align: center;
+        /* ===== HOME SCREEN ===== */
+        .home-header {
+            padding: 20px 16px 14px;
+        }
+
+        .home-greeting {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.5em;
+            color: var(--cream);
+            margin-bottom: 4px;
+        }
+
+        .home-sub { color: var(--sage); font-size: 0.87em; font-weight: 300; }
+
+        /* Year filter pill row */
+        .filter-row {
+            display: flex; gap: 8px; padding: 0 16px 14px;
+            overflow-x: auto; scrollbar-width: none;
+        }
+        .filter-row::-webkit-scrollbar { display: none; }
+
+        .pill {
+            padding: 7px 16px; border-radius: 20px; font-size: 0.83em; font-weight: 600;
+            background: rgba(200,218,168,0.07); border: 1.5px solid var(--border);
+            color: var(--sage); cursor: pointer; white-space: nowrap; flex-shrink: 0;
+            transition: all 0.18s;
+        }
+        .pill.active { background: rgba(122,170,92,0.18); border-color: var(--sage); color: var(--cream); }
+
+        /* Category group */
+        .section-title {
+            font-size: 0.72em; font-weight: 600; color: var(--sage);
+            text-transform: uppercase; letter-spacing: 0.1em;
+            padding: 8px 16px 6px;
+        }
+
+        /* Plant type cards */
+        .cat-row {
+            padding: 0 12px 8px;
+            display: flex; gap: 10px;
+            overflow-x: auto; scrollbar-width: none;
+        }
+        .cat-row::-webkit-scrollbar { display: none; }
+
+        .cat-chip {
+            display: flex; flex-direction: column; align-items: center;
+            padding: 14px 16px; gap: 8px;
+            background: var(--card-bg); border: 1.5px solid var(--border);
+            border-radius: 16px; cursor: pointer; flex-shrink: 0; min-width: 90px;
             transition: all 0.2s;
         }
-        .cat-add-btn:hover { background: rgba(200,218,168,0.1); border-color: var(--sage); color: var(--mist); }
+        .cat-chip:active { background: rgba(122,170,92,0.12); border-color: var(--sage); }
+        .cat-chip .cat-icon { font-size: 1.8em; }
+        .cat-chip .cat-name { font-size: 0.78em; font-weight: 600; color: var(--cream); text-align: center; }
+        .cat-chip .cat-n { font-size: 0.7em; color: var(--sage); }
 
-        /* MIDDLE PANEL: Sort list */
-        .panel-middle {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            background: var(--soil);
+        .cat-chip-add {
+            border-style: dashed; color: var(--sage);
         }
+        .cat-chip-add .cat-icon { font-size: 1.8em; color: var(--sage); opacity: 0.6; }
+        .cat-chip-add .cat-name { color: var(--sage); }
 
-        .panel-header {
-            padding: 14px 18px 10px;
-            border-bottom: 1px solid var(--border);
-            display: flex; align-items: center; gap: 10px;
-            flex-shrink: 0;
-        }
-
-        .panel-header-title {
-            font-family: 'Playfair Display', serif;
-            font-size: 1.2em;
-            color: var(--cream);
-            flex: 1;
-        }
-
-        .sort-list-wrap { flex: 1; overflow-y: auto; padding: 12px 14px; }
-
+        /* Sort cards in list */
         .sort-card {
+            margin: 0 12px 10px;
             background: var(--card-bg);
             border: 1.5px solid var(--border);
-            border-radius: 12px;
-            padding: 14px 16px;
-            margin-bottom: 8px;
+            border-radius: 16px;
+            padding: 16px;
             cursor: pointer;
-            transition: all 0.2s;
-            display: flex;
-            align-items: center;
-            gap: 12px;
+            transition: all 0.18s;
+            display: flex; align-items: center; gap: 12px;
         }
-        .sort-card:hover { border-color: var(--border-hover); background: rgba(200,218,168,0.09); transform: translateX(3px); }
-        .sort-card.active { border-color: var(--sage); background: rgba(122,170,92,0.1); }
+        .sort-card:active { border-color: var(--sage); background: rgba(122,170,92,0.08); }
+
+        .sort-card-dot {
+            width: 10px; height: 10px; border-radius: 50%;
+            background: var(--border); flex-shrink: 0;
+        }
+        .sort-card-dot.green { background: var(--sage); }
+        .sort-card-dot.gold { background: var(--gold); }
 
         .sort-card-body { flex: 1; min-width: 0; }
-        .sort-card-name { font-weight: 600; color: var(--cream); font-size: 0.98em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .sort-card-meta { font-size: 0.78em; color: var(--sage); margin-top: 4px; display: flex; gap: 10px; flex-wrap: wrap; }
+        .sort-card-name { font-weight: 600; color: var(--cream); font-size: 0.97em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .sort-card-meta { font-size: 0.77em; color: var(--sage); margin-top: 3px; }
 
-        .sort-card-badges { display: flex; gap: 5px; flex-wrap: wrap; margin-top: 5px; }
-        .badge { padding: 2px 8px; border-radius: 10px; font-size: 0.72em; font-weight: 600; }
+        .sort-badges { display: flex; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
+        .badge { padding: 3px 9px; border-radius: 10px; font-size: 0.7em; font-weight: 600; }
         .badge-green { background: rgba(78,122,46,0.25); color: var(--sage); }
         .badge-gold { background: rgba(196,145,62,0.2); color: var(--gold); }
         .badge-gray { background: rgba(200,218,168,0.1); color: var(--sage); }
         .badge-remind { background: rgba(196,145,62,0.12); color: var(--gold); border: 1px solid rgba(196,145,62,0.25); }
 
-        .sort-arrow { color: var(--border-hover); font-size: 1.1em; flex-shrink: 0; transition: transform 0.2s; }
-        .sort-card:hover .sort-arrow, .sort-card.active .sort-arrow { transform: translateX(3px); color: var(--sage); }
+        .sort-arrow { color: rgba(200,218,168,0.3); font-size: 1.2em; flex-shrink: 0; }
 
-        .empty-state {
-            text-align: center; padding: 50px 20px; color: var(--sage);
-        }
-        .empty-state .big { font-size: 3em; display: block; margin-bottom: 14px; opacity: 0.5; }
-        .empty-state h3 { font-family: 'Playfair Display', serif; color: var(--mist); font-size: 1.2em; margin-bottom: 6px; }
-        .empty-state p { font-size: 0.88em; font-weight: 300; }
-
-        /* RIGHT PANEL: Detail view */
-        .panel-right {
-            width: 700px;
-            flex-shrink: 1;
-            background: var(--panel-bg);
-            border-left: 1px solid var(--border);
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            transition: width 0.3s ease;
-        }
-
-        .panel-right.collapsed { width: 0; }
-
-        .detail-header {
-            padding: 14px 16px 10px;
+        /* ===== DETAIL SCREEN ===== */
+        .detail-hero {
+            background: linear-gradient(160deg, #1e3512 0%, #1a2610 100%);
+            padding: 20px 16px 18px;
             border-bottom: 1px solid var(--border);
-            flex-shrink: 0;
         }
+        .detail-plant { font-family: 'Playfair Display', serif; font-size: 1.6em; color: var(--cream); margin-bottom: 3px; }
+        .detail-sort { color: var(--sage); font-size: 0.9em; }
 
-        .detail-header-top {
-            display: flex; align-items: flex-start; justify-content: space-between; gap: 8px;
+        .detail-section {
+            padding: 16px 16px 4px;
         }
-
-        .detail-title-block {}
-        .detail-plant-name { font-family: 'Playfair Display', serif; font-size: 1.25em; color: var(--cream); line-height: 1.2; }
-        .detail-sort-name { color: var(--sage); font-size: 0.85em; margin-top: 2px; }
-
-        .detail-body { flex: 1; overflow-y: auto; padding: 14px 16px; }
-
-        .detail-section { margin-bottom: 18px; }
         .detail-section-title {
             font-size: 0.7em; font-weight: 600; color: var(--sage);
-            text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 10px;
-            padding-bottom: 6px; border-bottom: 1px solid var(--border);
+            text-transform: uppercase; letter-spacing: 0.08em;
+            margin-bottom: 12px; padding-bottom: 8px;
+            border-bottom: 1px solid var(--border);
         }
 
-        .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .fields-grid.single { grid-template-columns: 1fr; }
-
+        .fields-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 4px; }
         .field-grp { display: flex; flex-direction: column; gap: 5px; }
         .field-grp.full { grid-column: 1 / -1; }
-
-        .field-lbl { font-size: 0.72em; font-weight: 600; color: var(--sage); text-transform: uppercase; letter-spacing: 0.06em; }
-
-        .field-inp {
-            padding: 8px 11px;
-            background: rgba(200,218,168,0.06); border: 1.5px solid var(--border);
-            border-radius: 8px; color: var(--cream); font-family: 'DM Sans', sans-serif;
-            font-size: 0.88em; width: 100%; transition: border-color 0.2s;
-        }
-        .field-inp:focus { outline: none; border-color: var(--sage); background: rgba(200,218,168,0.09); }
-        .field-inp[readonly] { opacity: 0.55; cursor: default; }
-        .field-inp::placeholder { color: rgba(200,218,168,0.25); }
-        textarea.field-inp { min-height: 80px; resize: vertical; }
+        .field-lbl { font-size: 0.7em; font-weight: 600; color: var(--sage); text-transform: uppercase; letter-spacing: 0.06em; }
 
         /* Images */
-        .img-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 10px; }
-        .img-wrap { position: relative; width: 75px; height: 75px; }
-        .img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; cursor: pointer; border: 2px solid var(--border); transition: border-color 0.2s; }
-        .img-wrap img:hover { border-color: var(--sage); }
-        .img-wrap button { position: absolute; top: -6px; right: -6px; width: 20px; height: 20px; border-radius: 50%; border: none; background: var(--rust); color: white; cursor: pointer; font-size: 0.75em; font-weight: bold; }
+        .img-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+        .img-wrap { position: relative; width: 85px; height: 85px; }
+        .img-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 12px; cursor: pointer; border: 2px solid var(--border); }
+        .img-wrap button { position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; border-radius: 50%; border: none; background: var(--rust); color: white; cursor: pointer; font-size: 0.8em; font-weight: bold; display: flex; align-items: center; justify-content: center; }
 
-        .upload-row { display: flex; gap: 8px; flex-wrap: wrap; }
+        .upload-row { display: flex; gap: 10px; flex-wrap: wrap; }
         .upload-lbl {
-            display: inline-block; padding: 7px 14px;
-            background: rgba(200,218,168,0.08); border: 1px solid var(--border);
-            color: var(--mist); border-radius: 8px; cursor: pointer; font-size: 0.82em;
-            font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+            flex: 1; min-width: 120px; display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 12px; background: rgba(200,218,168,0.07); border: 1.5px solid var(--border);
+            color: var(--mist); border-radius: 12px; cursor: pointer; font-size: 0.87em;
+            font-family: 'DM Sans', sans-serif; font-weight: 500;
         }
-        .upload-lbl:hover { background: rgba(200,218,168,0.14); }
+        .upload-lbl:active { background: rgba(200,218,168,0.12); }
 
-        /* ===== POPUP ===== */
-        .popup-overlay {
+        /* FAB */
+        .fab {
+            position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 16px); right: 18px;
+            width: 58px; height: 58px; border-radius: 18px;
+            background: linear-gradient(135deg, var(--leaf), var(--moss));
+            border: none; color: white; font-size: 1.6em; cursor: pointer;
+            box-shadow: 0 6px 20px rgba(78,122,46,0.45);
+            display: flex; align-items: center; justify-content: center;
+            z-index: 10; transition: transform 0.18s;
+        }
+        .fab:active { transform: scale(0.92); }
+        .fab.hidden { display: none; }
+
+        /* ===== REMINDERS SCREEN ===== */
+        .remind-card {
+            margin: 0 12px 10px;
+            background: rgba(196,145,62,0.06);
+            border: 1.5px solid rgba(196,145,62,0.18);
+            border-radius: 16px;
+            padding: 16px;
+            display: flex; align-items: flex-start; gap: 12px;
+        }
+        .remind-icon { font-size: 1.4em; flex-shrink: 0; padding-top: 2px; }
+        .remind-info { flex: 1; }
+        .remind-name { font-weight: 600; color: var(--cream); font-size: 0.93em; }
+        .remind-text { color: var(--sage); font-size: 0.82em; margin-top: 3px; }
+        .remind-time { font-size: 0.75em; margin-top: 4px; font-weight: 600; }
+        .remind-time.today { color: var(--gold); }
+        .remind-time.soon { color: var(--sage); }
+        .remind-time.past { color: #e0764e; }
+
+        /* ===== SETTINGS / EXPORT SCREEN ===== */
+        .settings-section { padding: 14px 16px 6px; }
+        .settings-row {
+            background: var(--card-bg); border: 1.5px solid var(--border);
+            border-radius: 14px; padding: 16px; margin-bottom: 10px;
+            display: flex; align-items: center; gap: 12px;
+            cursor: pointer; transition: background 0.18s;
+        }
+        .settings-row:active { background: rgba(200,218,168,0.1); }
+        .settings-row .s-icon { font-size: 1.4em; flex-shrink: 0; }
+        .settings-row .s-body { flex: 1; }
+        .settings-row .s-title { font-weight: 600; color: var(--cream); font-size: 0.93em; }
+        .settings-row .s-sub { color: var(--sage); font-size: 0.8em; margin-top: 2px; }
+        .settings-row .s-arrow { color: rgba(200,218,168,0.3); }
+
+        /* ===== POPUP / MODAL ===== */
+        .overlay {
             display: none; position: fixed; inset: 0;
-            background: rgba(0,0,0,0.7); z-index: 200;
-            justify-content: center; align-items: center; padding: 20px;
+            background: rgba(0,0,0,0.75); z-index: 300;
+            align-items: flex-end; justify-content: center;
         }
-        .popup-overlay.show { display: flex; }
+        .overlay.show { display: flex; }
 
-        .popup {
+        .sheet {
             background: #1e2a14; border: 1.5px solid var(--border);
-            border-radius: 18px; padding: 28px; max-width: 420px; width: 100%;
-            animation: popIn 0.25s ease;
+            border-radius: 24px 24px 0 0; padding: 24px 20px 32px;
+            width: 100%; max-height: 90vh; overflow-y: auto;
+            animation: slideUp 0.28s ease;
         }
-        @keyframes popIn { from { transform: scale(0.94); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        @keyframes slideUp { from { transform: translateY(60px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 
-        .popup-title { font-family: 'Playfair Display', serif; font-size: 1.35em; color: var(--cream); margin-bottom: 4px; }
-        .popup-sub { color: var(--sage); font-size: 0.86em; margin-bottom: 20px; }
-        .popup-field { margin-bottom: 13px; }
-        .popup-label { display: block; font-size: 0.77em; font-weight: 600; color: var(--sage); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 5px; }
-        .popup-input { width: 100%; padding: 10px 13px; background: rgba(200,218,168,0.07); border: 1.5px solid var(--border); border-radius: 9px; color: var(--cream); font-family: 'DM Sans', sans-serif; font-size: 0.92em; }
-        .popup-input:focus { outline: none; border-color: var(--sage); }
-        .popup-input::placeholder { color: rgba(200,218,168,0.25); }
-        .popup-actions { display: flex; gap: 10px; margin-top: 18px; }
+        .sheet-handle { width: 36px; height: 4px; background: rgba(200,218,168,0.2); border-radius: 2px; margin: 0 auto 20px; }
+        .sheet-title { font-family: 'Playfair Display', serif; font-size: 1.25em; color: var(--cream); margin-bottom: 4px; }
+        .sheet-sub { color: var(--sage); font-size: 0.85em; margin-bottom: 18px; }
+        .sheet-field { margin-bottom: 12px; }
+        .sheet-actions { display: flex; gap: 10px; margin-top: 18px; }
 
-        /* ===== MODAL IMAGE ===== */
-        .modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.92); z-index: 500; justify-content: center; align-items: center; }
-        .modal.show { display: flex; }
-        .modal img { max-width: 90%; max-height: 90%; border-radius: 10px; }
-        .modal-close { position: absolute; top: 18px; right: 32px; color: white; font-size: 42px; cursor: pointer; line-height: 1; }
-
-        /* ===== PÅMINNELSE PANEL ===== */
-        .remind-bar {
-            display: none;
-            background: rgba(196,145,62,0.08); border-bottom: 1px solid rgba(196,145,62,0.2);
-            padding: 10px 18px;
+        /* Dialog (centered) */
+        .dialog-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.75); z-index: 400;
+            align-items: center; justify-content: center; padding: 20px;
         }
-        .remind-bar.show { display: block; }
-        .remind-bar-title { color: var(--gold); font-weight: 600; font-size: 0.88em; margin-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
-        .remind-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(200,218,168,0.05); border-radius: 8px; margin-bottom: 5px; }
-        .remind-item-text strong { font-size: 0.87em; color: var(--cream); }
-        .remind-item-text span { display: block; font-size: 0.77em; color: var(--sage); }
+        .dialog-overlay.show { display: flex; }
+        .dialog {
+            background: #1e2a14; border: 1.5px solid var(--border);
+            border-radius: 20px; padding: 26px 22px; width: 100%; max-width: 380px;
+            animation: popIn 0.22s ease;
+        }
+        @keyframes popIn { from { transform: scale(0.93); opacity: 0; } to { transform: scale(1); opacity: 1; } }
 
-        /* Notis */
-        .notif { position: fixed; top: 16px; right: 16px; max-width: 360px; background: linear-gradient(135deg, #1c3810, #263d14); border: 1.5px solid rgba(122,170,92,0.35); color: var(--mist); padding: 16px 18px; border-radius: 14px; box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 9999; animation: slideIn 0.35s ease; }
-        @keyframes slideIn { from { transform: translateX(380px); opacity: 0; } to { transform: translateX(0); opacity: 1; } }
-        .notif-title { font-weight: 600; color: var(--cream); margin-bottom: 8px; font-size: 0.95em; }
-        .notif-item { background: rgba(200,218,168,0.07); border-radius: 7px; padding: 7px 10px; margin-bottom: 5px; font-size: 0.84em; }
-        .notif-actions { display: flex; gap: 8px; margin-top: 10px; }
-        .notif-btn { flex:1; padding: 7px; border-radius: 7px; border: none; cursor: pointer; font-size: 0.82em; font-family: 'DM Sans',sans-serif; font-weight: 600; }
-        .notif-primary { background: var(--leaf); color: white; }
-        .notif-close { background: rgba(200,218,168,0.12); color: var(--mist); }
+        /* ===== IMAGE MODAL ===== */
+        .img-modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.94); z-index: 500; align-items: center; justify-content: center; }
+        .img-modal.show { display: flex; }
+        .img-modal img { max-width: 95%; max-height: 90%; border-radius: 12px; }
+        .img-modal-close { position: absolute; top: 20px; right: 20px; color: white; font-size: 2.2em; cursor: pointer; background: rgba(0,0,0,0.4); width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: none; }
+
+        /* ===== NOTIFICATION ===== */
+        .notif {
+            position: fixed; bottom: calc(var(--nav-h) + var(--safe-bottom) + 12px); left: 12px; right: 12px;
+            background: linear-gradient(135deg, #1c3810, #263d14);
+            border: 1.5px solid rgba(122,170,92,0.35); color: var(--mist);
+            padding: 14px 16px; border-radius: 16px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.4); z-index: 9999;
+            animation: slideUpNotif 0.3s ease;
+        }
+        @keyframes slideUpNotif { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+        /* ===== EMPTY STATES ===== */
+        .empty {
+            text-align: center; padding: 60px 30px; color: var(--sage);
+        }
+        .empty .big { font-size: 3.5em; display: block; margin-bottom: 16px; opacity: 0.4; }
+        .empty h3 { font-family: 'Playfair Display', serif; color: var(--mist); font-size: 1.2em; margin-bottom: 8px; }
+        .empty p { font-size: 0.87em; font-weight: 300; }
+
+        /* ===== QR BOX ===== */
+        .qr-box { text-align: center; padding: 16px; background: rgba(200,218,168,0.05); border: 1px solid var(--border); border-radius: 14px; margin-top: 12px; }
+        .qr-box h4 { color: var(--cream); font-family: 'Playfair Display', serif; margin-bottom: 8px; }
+        .qr-box p { color: var(--sage); font-size: 0.83em; }
 
         /* Scrollbars */
-        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar { width: 3px; }
         ::-webkit-scrollbar-track { background: transparent; }
-        ::-webkit-scrollbar-thumb { background: rgba(200,218,168,0.15); border-radius: 3px; }
+        ::-webkit-scrollbar-thumb { background: rgba(200,218,168,0.12); border-radius: 2px; }
 
-        /* QR section */
-        .qr-box { text-align: center; padding: 18px; background: rgba(200,218,168,0.05); border: 1px solid var(--border); border-radius: 12px; margin-top: 14px; }
-        .qr-box h4 { color: var(--cream); font-family: 'Playfair Display', serif; margin-bottom: 8px; }
-        .qr-box p { color: var(--sage); font-size: 0.84em; }
+        /* ===== BACK-BUTTON SCREENS ===== */
+        #screenSortList .topbar,
+        #screenDetail .topbar {
+            padding-right: 12px;
+        }
 
-        /* Mobile: collapse panels */
-        @media (max-width: 900px) {
-            .panel-left { width: 190px; }
-            .panel-right { width: 360px; }
+        .divider {
+            height: 1px; background: var(--border); margin: 4px 16px 12px;
         }
-        @media (max-width: 680px) {
-            body { overflow: auto; }
-            #appShell { height: auto; overflow: auto; }
-            .body-layout { flex-direction: column; }
-            .panel-left, .panel-middle, .panel-right { width: 100%; flex-shrink: 0; }
-            .panel-left { border-right: none; border-bottom: 1px solid var(--border); }
-            .panel-right { border-left: none; border-top: 1px solid var(--border); width: 100%; }
-            .panel-right.collapsed { width: 100%; height: 0; overflow: hidden; }
+
+        /* Stat chips */
+        .stat-row { display: flex; gap: 8px; padding: 0 16px 16px; flex-wrap: wrap; }
+        .stat-chip {
+            flex: 1; min-width: 80px;
+            background: var(--card-bg); border: 1.5px solid var(--border);
+            border-radius: 14px; padding: 12px 10px; text-align: center;
         }
+        .stat-chip .stat-val { font-size: 1.4em; font-weight: 700; color: var(--cream); }
+        .stat-chip .stat-lbl { font-size: 0.68em; color: var(--sage); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
+
+        .progress-bar { height: 5px; background: rgba(200,218,168,0.1); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+        .progress-fill { height: 100%; background: var(--sage); border-radius: 3px; transition: width 0.5s ease; }
     </style>
 </head>
 <body>
 
 <!-- ===== SETUP ===== -->
-<div id="setupSection">
-    <div class="auth-box">
-        <div class="auth-logo">
-            <span class="icon">🌱</span>
-            <h1>Frö &amp; Sådd</h1>
-            <p>Anslut till Firebase för att starta</p>
-        </div>
-        <div class="setup-step">
-            <h3>🔧 Kom igång</h3>
-            <ol>
-                <li>Gå till <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
-                <li>Skapa projekt + webb-app</li>
-                <li>Aktivera <code>Firestore Database</code> (test-läge)</li>
-                <li>Aktivera <code>Authentication → Email/Password</code></li>
-                <li>Klistra in konfigurationen nedan</li>
-            </ol>
-        </div>
-        <div class="setup-step">
-            <h3>📋 Din Firebase-konfiguration</h3>
-            <label class="field-lbl">API Key</label><input type="text" id="apiKey" class="cfg" placeholder="AIza...">
-            <label class="field-lbl">Auth Domain</label><input type="text" id="authDomain" class="cfg" placeholder="projekt.firebaseapp.com">
-            <label class="field-lbl">Project ID</label><input type="text" id="projectId" class="cfg" placeholder="mitt-projekt">
-            <label class="field-lbl">Storage Bucket</label><input type="text" id="storageBucket" class="cfg" placeholder="projekt.appspot.com">
-            <label class="field-lbl">Messaging Sender ID</label><input type="text" id="messagingSenderId" class="cfg" placeholder="123456789">
-            <label class="field-lbl">App ID</label><input type="text" id="appId" class="cfg" placeholder="1:123:web:abc">
-            <div style="display:flex;gap:10px;margin-top:16px;">
-                <button class="btn btn-primary" onclick="sparaConfig()" style="flex:1;">💾 Spara &amp; Anslut</button>
-                <button class="btn btn-secondary" onclick="visaQRSetup()">📱 QR</button>
-            </div>
-        </div>
-        <div id="qrSetup" style="display:none;" class="qr-box">
-            <h4>📱 QR-kod</h4>
-            <canvas id="qrCanvas" style="margin:12px auto;display:block;"></canvas>
-            <p>Scanna för att dela konfigurationen</p>
-            <button class="btn btn-secondary btn-sm" onclick="document.getElementById('qrSetup').style.display='none'" style="margin-top:10px;">Stäng</button>
-        </div>
+<div id="setupScreen" class="auth-screen">
+    <div class="auth-logo">
+        <span class="icon">🌱</span>
+        <h1>Frö &amp; Sådd</h1>
+        <p>Anslut till Firebase för att starta</p>
+    </div>
+    <div class="auth-card">
+        <h3>🔧 Kom igång</h3>
+        <ol>
+            <li>Gå till <a href="https://console.firebase.google.com" target="_blank">Firebase Console</a></li>
+            <li>Skapa projekt + webb-app</li>
+            <li>Aktivera <code>Firestore Database</code></li>
+            <li>Aktivera <code>Authentication → Email/Password</code></li>
+            <li>Klistra in konfigurationen nedan</li>
+        </ol>
+    </div>
+    <div class="auth-card">
+        <h3>📋 Firebase-konfiguration</h3>
+        <label class="lbl">API Key</label><input type="text" id="apiKey" class="cfg" placeholder="AIza..." autocomplete="off">
+        <label class="lbl">Auth Domain</label><input type="text" id="authDomain" class="cfg" placeholder="projekt.firebaseapp.com">
+        <label class="lbl">Project ID</label><input type="text" id="projectId" class="cfg" placeholder="mitt-projekt">
+        <label class="lbl">Storage Bucket</label><input type="text" id="storageBucket" class="cfg" placeholder="projekt.appspot.com">
+        <label class="lbl">Messaging Sender ID</label><input type="text" id="messagingSenderId" class="cfg" placeholder="123456789">
+        <label class="lbl">App ID</label><input type="text" id="appId" class="cfg" placeholder="1:123:web:abc">
+        <button class="btn btn-primary btn-full" onclick="sparaConfig()" style="margin-top:16px;">💾 Anslut</button>
+    </div>
+    <div id="qrSetup" style="display:none;" class="auth-card qr-box">
+        <h4>📱 QR-kod</h4>
+        <canvas id="qrCanvas" style="margin:12px auto;display:block;max-width:200px;"></canvas>
+        <p>Dela konfigurationen</p>
+        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('qrSetup').style.display='none'" style="margin-top:10px;">Stäng</button>
     </div>
 </div>
 
 <!-- ===== LOGIN ===== -->
-<div id="loginSection" style="display:none;">
-    <div class="auth-box" style="max-width:380px;">
-        <div class="auth-logo">
-            <span class="icon">🔐</span>
-            <h1>Logga in</h1>
-            <p>Ange dina uppgifter</p>
-        </div>
-        <label class="field-lbl">Email</label>
-        <input type="email" id="loginEmail" class="cfg" placeholder="din@email.com">
-        <label class="field-lbl">Lösenord</label>
-        <input type="password" id="loginPassword" class="cfg" placeholder="••••••••" onkeypress="if(event.key==='Enter')loggaIn()">
-        <button class="btn btn-primary" onclick="loggaIn()" style="width:100%;margin-top:14px;padding:13px;justify-content:center;">🔓 Logga in</button>
-        <div id="loginError" style="color:#e0764e;font-size:0.85em;margin-top:8px;display:none;"></div>
+<div id="loginScreen" class="auth-screen" style="display:none;">
+    <div class="auth-logo">
+        <span class="icon">🔐</span>
+        <h1>Logga in</h1>
+        <p>Frö &amp; Såddloggbok</p>
+    </div>
+    <div class="auth-card" style="max-width:440px;width:100%;">
+        <label class="lbl">Email</label>
+        <input type="email" id="loginEmail" class="fi" placeholder="din@email.com" autocomplete="email">
+        <label class="lbl" style="margin-top:12px;">Lösenord</label>
+        <input type="password" id="loginPassword" class="fi" placeholder="••••••••" onkeypress="if(event.key==='Enter')loggaIn()">
+        <button class="btn btn-primary btn-full" onclick="loggaIn()" style="margin-top:16px;padding:15px;">🔓 Logga in</button>
+        <div id="loginError" style="color:#e0764e;font-size:0.85em;margin-top:10px;display:none;"></div>
+        <button class="btn btn-secondary btn-sm" onclick="visaSetup()" style="width:100%;margin-top:10px;">⚙️ Ändra konfiguration</button>
     </div>
 </div>
 
 <!-- ===== APP SHELL ===== -->
 <div id="appShell">
-    <!-- TOP BAR -->
-    <div class="topbar">
-        <div class="topbar-logo">
-            <span class="icon">🌱</span>
-            <span>Frö &amp; Sådd</span>
-        </div>
-        <div class="topbar-spacer"></div>
-        <button class="btn btn-secondary btn-sm" onclick="visaPaminnelserPanel()">🔔 Påminnelser</button>
-        <button class="btn btn-secondary btn-sm" onclick="exporteraCSV()">📥 CSV</button>
-        <label class="btn btn-secondary btn-sm" style="cursor:pointer;">
-            📤 Importera
-            <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="importeraFil(this.files[0])">
-        </label>
-        <button class="btn btn-secondary btn-icon" onclick="visaQRInloggad()">📱</button>
+
+    <!-- TOP BAR (dynamic) -->
+    <div class="topbar" id="mainTopbar">
+        <div class="topbar-title" id="topbarTitle">🌱 Frö &amp; Sådd</div>
         <span class="user-chip" id="userEmailChip">—</span>
-        <button class="btn btn-danger btn-sm" onclick="loggaUt()">Logga ut</button>
     </div>
 
-    <!-- REMINDER BAR (below topbar) -->
-    <div class="remind-bar" id="remindBar">
-        <div class="remind-bar-title">
-            <span>🔔 Kommande påminnelser</span>
-            <button class="btn btn-secondary btn-sm" onclick="stangPaminnelserPanel()">Stäng</button>
-        </div>
-        <div id="remindList"></div>
-    </div>
+    <!-- SCREEN AREA -->
+    <div class="screen-area">
 
-    <!-- QR (inloggad) -->
-    <div id="qrInloggad" style="display:none;position:absolute;top:60px;right:10px;z-index:100;width:280px;" class="qr-box">
-        <h4>📱 Scanna med mobilen</h4>
-        <canvas id="qrCanvasInloggad" style="margin:10px auto;display:block;max-width:200px;"></canvas>
-        <p>Innehåller Firebase-konfiguration</p>
-        <button class="btn btn-secondary btn-sm" onclick="document.getElementById('qrInloggad').style.display='none'" style="margin-top:10px;">Stäng</button>
-    </div>
-
-    <!-- THREE-COLUMN BODY -->
-    <div class="body-layout">
-
-        <!-- LEFT: Year + Categories -->
-        <div class="panel-left">
-            <div class="panel-section-title">Säsong</div>
-            <div class="year-selector">
-                <select class="year-select" id="yearSelect" onchange="byttAr()">
-                    <option value="">Alla år</option>
-                </select>
+        <!-- SCREEN: HOME (categories + recent) -->
+        <div class="screen active" id="screenHome">
+            <div class="home-header">
+                <div class="home-greeting" id="homeGreeting">God morgon</div>
+                <div class="home-sub" id="homeSub">Din trädgårdsloggbok</div>
             </div>
 
-            <div class="panel-section-title" style="padding-top:12px;">Växttyper</div>
-            <div class="cat-list" id="catList"></div>
-            <button class="cat-add-btn" onclick="visaLaggTillKategori()">+ Lägg till växttyp</button>
+            <!-- Stats -->
+            <div class="stat-row" id="homeStats"></div>
+
+            <!-- Year filter -->
+            <div class="filter-row" id="yearPills"></div>
+
+            <!-- Plant types -->
+            <div class="section-title">Växttyper</div>
+            <div class="cat-row" id="catRow"></div>
+
+            <!-- Recent activity (if no cat selected) -->
+            <div class="section-title" id="sortSectionTitle" style="margin-top:8px;">Senaste såddar</div>
+            <div id="sortListContainer"></div>
         </div>
 
-        <!-- MIDDLE: Sort list -->
-        <div class="panel-middle">
-            <div class="panel-header">
-                <div class="panel-header-title" id="middleTitle">Välj en växttyp</div>
-                <button class="btn btn-primary btn-sm" onclick="visaNySaddPopup()">➕ Ny sådd</button>
-            </div>
-            <div class="sort-list-wrap">
-                <div id="sortListContainer"></div>
+        <!-- SCREEN: SORT LIST (after tapping a category) -->
+        <div class="screen" id="screenSortList">
+            <div style="padding: 8px 0 0;">
+                <div id="catSortList"></div>
             </div>
         </div>
 
-        <!-- RIGHT: Detail panel -->
-        <div class="panel-right collapsed" id="panelRight">
-            <div class="detail-header">
-                <div class="detail-header-top">
-                    <div class="detail-title-block">
-                        <div class="detail-plant-name" id="detailPlantName">—</div>
-                        <div class="detail-sort-name" id="detailSortName"></div>
-                    </div>
-                    <div style="display:flex;gap:6px;align-items:center;">
-                        <button class="btn btn-danger btn-sm" id="detailDeleteBtn">🗑️ Ta bort</button>
-                        <button class="btn btn-secondary btn-icon" onclick="stangDetaljer()" title="Stäng">✕</button>
-                    </div>
+        <!-- SCREEN: REMINDERS -->
+        <div class="screen" id="screenReminders">
+            <div style="padding:16px 0 0;">
+                <div id="remindContainer"></div>
+            </div>
+        </div>
+
+        <!-- SCREEN: SETTINGS -->
+        <div class="screen" id="screenSettings">
+            <div class="settings-section">
+                <div class="section-title">Data</div>
+
+                <div class="settings-row" onclick="exporteraCSV()">
+                    <span class="s-icon">📥</span>
+                    <div class="s-body"><div class="s-title">Exportera CSV</div><div class="s-sub">Ladda ner all data som CSV-fil</div></div>
+                    <span class="s-arrow">›</span>
+                </div>
+
+                <label class="settings-row" style="cursor:pointer;">
+                    <span class="s-icon">📤</span>
+                    <div class="s-body"><div class="s-title">Importera</div><div class="s-sub">Importera från CSV eller Excel</div></div>
+                    <span class="s-arrow">›</span>
+                    <input type="file" id="importFile" accept=".csv,.xlsx,.xls" style="display:none" onchange="importeraFil(this.files[0])">
+                </label>
+
+                <div class="settings-row" onclick="visaQRInloggad()">
+                    <span class="s-icon">📱</span>
+                    <div class="s-body"><div class="s-title">Dela via QR</div><div class="s-sub">Scanna på annan enhet</div></div>
+                    <span class="s-arrow">›</span>
+                </div>
+
+                <div class="section-title" style="margin-top:12px;">Konto</div>
+
+                <div class="settings-row" id="accountRow">
+                    <span class="s-icon">👤</span>
+                    <div class="s-body"><div class="s-title">Inloggad som</div><div class="s-sub" id="settingsEmail">—</div></div>
+                </div>
+
+                <div class="settings-row" onclick="loggaUt()">
+                    <span class="s-icon">🚪</span>
+                    <div class="s-body"><div class="s-title">Logga ut</div><div class="s-sub">Avsluta sessionen</div></div>
+                    <span class="s-arrow">›</span>
                 </div>
             </div>
-            <div class="detail-body" id="detailBody"></div>
+
+            <!-- QR Box (hidden by default) -->
+            <div id="qrInloggad" style="display:none;margin:0 16px;" class="qr-box">
+                <h4>📱 Scanna med mobilen</h4>
+                <canvas id="qrCanvasInloggad" style="margin:10px auto;display:block;max-width:200px;"></canvas>
+                <p>Innehåller Firebase-konfiguration</p>
+                <button class="btn btn-secondary btn-sm" onclick="document.getElementById('qrInloggad').style.display='none'" style="margin-top:10px;">Stäng</button>
+            </div>
+        </div>
+
+        <!-- SCREEN: DETAIL (sort entry) -->
+        <div class="screen" id="screenDetail">
+            <div id="detailContent"></div>
         </div>
 
     </div>
+
+    <!-- FAB (add new) -->
+    <button class="fab" id="fabBtn" onclick="visaNySaddSheet()">＋</button>
+
+    <!-- BOTTOM NAV -->
+    <div class="bottom-nav">
+        <button class="nav-btn active" id="nav-home" onclick="navTo('home')">
+            <span class="nav-icon">🌿</span>
+            <span>Hem</span>
+        </button>
+        <button class="nav-btn" id="nav-reminders" onclick="navTo('reminders')">
+            <span class="nav-icon">🔔</span>
+            <span>Påminnelser</span>
+        </button>
+        <button class="nav-btn" id="nav-settings" onclick="navTo('settings')">
+            <span class="nav-icon">⚙️</span>
+            <span>Inställningar</span>
+        </button>
+    </div>
+
 </div>
 
-<!-- NEW SÅDD POPUP -->
-<div class="popup-overlay" id="nySaddPopup">
-    <div class="popup">
-        <div class="popup-title">🌱 Ny sådd</div>
-        <div class="popup-sub">Lägg till en ny post i loggboken</div>
-        <div class="popup-field">
-            <label class="popup-label">Växttyp / Kategori</label>
-            <select class="popup-input" id="popupKat">
+<!-- NEW SÅDD SHEET -->
+<div class="overlay" id="nySaddSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">🌱 Ny sådd</div>
+        <div class="sheet-sub">Lägg till en ny post i loggboken</div>
+        <div class="sheet-field">
+            <label class="lbl">Växttyp / Kategori</label>
+            <select class="fi" id="popupKat">
                 <option value="">— Välj befintlig —</option>
             </select>
         </div>
-        <div class="popup-field">
-            <label class="popup-label">Eller ny växttyp</label>
-            <input type="text" class="popup-input" id="popupNyKat" placeholder="Skriv nytt namn...">
+        <div class="sheet-field">
+            <label class="lbl">Eller ny växttyp</label>
+            <input type="text" class="fi" id="popupNyKat" placeholder="Skriv nytt namn...">
         </div>
-        <div class="popup-field">
-            <label class="popup-label">Sort</label>
-            <input type="text" class="popup-input" id="popupSort" placeholder="t.ex. Bovictus">
+        <div class="sheet-field">
+            <label class="lbl">Sort</label>
+            <input type="text" class="fi" id="popupSort" placeholder="t.ex. Bovictus">
         </div>
-        <div class="popup-field">
-            <label class="popup-label">Datum sådd</label>
-            <input type="date" class="popup-input" id="popupDatum">
+        <div class="sheet-field">
+            <label class="lbl">Datum sådd</label>
+            <input type="date" class="fi" id="popupDatum">
         </div>
-        <div class="popup-field">
-            <label class="popup-label">Odlingssäsong (år)</label>
-            <input type="number" class="popup-input" id="popupAr">
+        <div class="sheet-field">
+            <label class="lbl">Odlingsår</label>
+            <input type="number" class="fi" id="popupAr">
         </div>
-        <div class="popup-actions">
-            <button class="btn btn-secondary" onclick="stangNySadd()" style="flex:1;">Avbryt</button>
+        <div class="sheet-actions">
+            <button class="btn btn-secondary" onclick="stangSheet('nySaddSheet')" style="flex:1;">Avbryt</button>
             <button class="btn btn-primary" onclick="skapaPost()" style="flex:2;">✅ Skapa post</button>
         </div>
     </div>
 </div>
 
-<!-- ADD CATEGORY POPUP -->
-<div class="popup-overlay" id="addKatPopup">
-    <div class="popup">
-        <div class="popup-title">🌿 Ny växttyp</div>
-        <div class="popup-sub">Skapa en ny kategori för dina växter</div>
-        <div class="popup-field">
-            <label class="popup-label">Namn på växttyp</label>
-            <input type="text" class="popup-input" id="newKatName" placeholder="t.ex. Tomater, Gurkor, Örter..." onkeypress="if(event.key==='Enter')sparaKategori()">
+<!-- ADD CATEGORY SHEET -->
+<div class="overlay" id="addKatSheet">
+    <div class="sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-title">🌿 Ny växttyp</div>
+        <div class="sheet-sub">Skapa en ny kategori</div>
+        <div class="sheet-field">
+            <label class="lbl">Namn på växttyp</label>
+            <input type="text" class="fi" id="newKatName" placeholder="t.ex. Tomater, Gurkor, Örter..." onkeypress="if(event.key==='Enter')sparaKategori()">
         </div>
-        <div class="popup-actions">
-            <button class="btn btn-secondary" onclick="stangAddKat()" style="flex:1;">Avbryt</button>
+        <div class="sheet-actions">
+            <button class="btn btn-secondary" onclick="stangSheet('addKatSheet')" style="flex:1;">Avbryt</button>
             <button class="btn btn-primary" onclick="sparaKategori()" style="flex:2;">✅ Skapa</button>
         </div>
     </div>
 </div>
 
 <!-- IMAGE MODAL -->
-<div id="imgModal" class="modal" onclick="stangModal()">
-    <span class="modal-close">×</span>
-    <img id="modalImg">
+<div id="imgModal" class="img-modal" onclick="stangImgModal()">
+    <button class="img-modal-close" onclick="stangImgModal()">×</button>
+    <img id="modalImg" src="">
 </div>
 
 <script type="module">
@@ -636,13 +687,102 @@
 
     let db, auth;
     let data = [];
-    let categories = []; // manually managed category list
+    let categories = [];
     let selectedYear = '';
     let selectedCat = null;
     let selectedPostId = null;
+    let currentNavScreen = 'home';
 
     // ============================================================
-    // FIREBASE INIT
+    // NAVIGATION
+    // ============================================================
+    window.navTo = function(screen) {
+        // Hide sub-screens first
+        document.getElementById('screenSortList').classList.remove('active');
+        document.getElementById('screenDetail').classList.remove('active');
+        document.getElementById('screenHome').classList.remove('active');
+        document.getElementById('screenReminders').classList.remove('active');
+        document.getElementById('screenSettings').classList.remove('active');
+
+        currentNavScreen = screen;
+
+        // Update nav buttons
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        const navEl = document.getElementById('nav-' + screen);
+        if (navEl) navEl.classList.add('active');
+
+        // Update topbar
+        const titles = { home: '🌱 Frö &amp; Sådd', reminders: '🔔 Påminnelser', settings: '⚙️ Inställningar' };
+        document.getElementById('topbarTitle').innerHTML = titles[screen] || '🌱 Frö &amp; Sådd';
+        document.getElementById('mainTopbar').style.display = 'flex';
+
+        // Show/hide FAB
+        document.getElementById('fabBtn').classList.toggle('hidden', screen !== 'home');
+
+        document.getElementById('screen' + screen.charAt(0).toUpperCase() + screen.slice(1)).classList.add('active');
+
+        if (screen === 'reminders') renderReminders();
+        if (screen === 'home') {
+            renderHomeStats();
+            renderYearPills();
+            renderCatRow();
+            renderSortList();
+        }
+    };
+
+    window.goSortList = function(cat) {
+        selectedCat = cat;
+        document.getElementById('screenHome').classList.remove('active');
+        document.getElementById('screenSortList').classList.add('active');
+        document.getElementById('mainTopbar').style.display = 'flex';
+        document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack()">‹</span> ${escHtml(cat)}`;
+        document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+        document.getElementById('nav-home').classList.add('active');
+        document.getElementById('fabBtn').classList.remove('hidden');
+        renderCatSortList();
+    };
+
+    window.goDetail = function(fid) {
+        selectedPostId = fid;
+        document.getElementById('screenSortList').classList.remove('active');
+        document.getElementById('screenHome').classList.remove('active');
+        document.getElementById('screenDetail').classList.add('active');
+        const p = data.find(x => x.firebaseId === fid);
+        if (!p) return;
+        document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack()">‹</span> ${escHtml(p.vaxt||'Detaljer')}`;
+        document.getElementById('fabBtn').classList.add('hidden');
+        renderDetail(fid);
+    };
+
+    window.goBack = function() {
+        document.getElementById('screenDetail').classList.remove('active');
+        if (selectedCat) {
+            document.getElementById('screenSortList').classList.add('active');
+            document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack2()">‹</span> ${escHtml(selectedCat)}`;
+            document.getElementById('fabBtn').classList.remove('hidden');
+            renderCatSortList();
+        } else {
+            navTo('home');
+        }
+    };
+
+    window.goBack2 = function() {
+        document.getElementById('screenSortList').classList.remove('active');
+        selectedCat = null;
+        navTo('home');
+    };
+
+    // ============================================================
+    // AUTH SCREENS
+    // ============================================================
+    window.visaSetup = function() {
+        document.getElementById('setupScreen').style.display = 'flex';
+        document.getElementById('loginScreen').style.display = 'none';
+        document.getElementById('appShell').style.display = 'none';
+    };
+
+    // ============================================================
+    // FIREBASE
     // ============================================================
     window.sparaConfig = function() {
         const config = {
@@ -666,39 +806,40 @@
 
             onAuthStateChanged(auth, user => {
                 if (user) {
-                    document.getElementById('setupSection').style.display = 'none';
-                    document.getElementById('loginSection').style.display = 'none';
+                    document.getElementById('setupScreen').style.display = 'none';
+                    document.getElementById('loginScreen').style.display = 'none';
                     document.getElementById('appShell').style.display = 'flex';
                     document.getElementById('userEmailChip').textContent = user.email;
+                    document.getElementById('settingsEmail').textContent = user.email;
 
-                    // Load categories from localStorage
                     const savedCats = localStorage.getItem('froCategories');
                     categories = savedCats ? JSON.parse(savedCats) : [];
 
-                    // Listen to Firestore
                     onSnapshot(collection(db, 'fron'), snapshot => {
                         data = [];
                         snapshot.forEach(d => data.push({ firebaseId: d.id, ...d.data() }));
                         data.sort((a,b) => new Date(b.skapad||0) - new Date(a.skapad||0));
 
-                        // Auto-add plant names from data as categories if not already present
                         data.forEach(p => {
                             const name = (p.vaxt||'').trim();
-                            if (name && !categories.includes(name)) {
-                                categories.push(name);
-                            }
+                            if (name && !categories.includes(name)) categories.push(name);
                         });
                         saveCategories();
 
-                        refreshAll();
-                        setTimeout(() => window.kollaPaminnelserVidStart(), 800);
+                        navTo('home');
+                        // Update detail if open
+                        if (selectedPostId && document.getElementById('screenDetail').classList.contains('active')) {
+                            const still = data.find(p => p.firebaseId === selectedPostId);
+                            if (still) renderDetail(selectedPostId);
+                        }
+                        setTimeout(() => kollaPaminnelserVidStart(), 800);
                     }, err => {
                         if (err.code === 'permission-denied') alert('🔒 Åtkomst nekad – kontrollera Firestore Security Rules');
                         else alert('Firebase-fel: ' + err.message);
                     });
                 } else {
-                    document.getElementById('setupSection').style.display = 'none';
-                    document.getElementById('loginSection').style.display = 'flex';
+                    document.getElementById('setupScreen').style.display = 'none';
+                    document.getElementById('loginScreen').style.display = 'flex';
                     document.getElementById('appShell').style.display = 'none';
                 }
             });
@@ -715,10 +856,9 @@
         const err = document.getElementById('loginError');
         err.style.display = 'none';
         if (!email || !pw) { err.textContent = 'Fyll i email och lösenord'; err.style.display = 'block'; return; }
-        try {
-            await signInWithEmailAndPassword(auth, email, pw);
-        } catch(e) {
-            const msgs = { 'auth/invalid-credential': 'Fel email eller lösenord', 'auth/wrong-password': 'Fel lösenord', 'auth/user-not-found': 'Ingen användare hittad', 'auth/too-many-requests': 'För många försök, vänta lite' };
+        try { await signInWithEmailAndPassword(auth, email, pw); }
+        catch(e) {
+            const msgs = { 'auth/invalid-credential': 'Fel email eller lösenord', 'auth/wrong-password': 'Fel lösenord', 'auth/user-not-found': 'Ingen användare hittad', 'auth/too-many-requests': 'För många försök' };
             err.textContent = msgs[e.code] || e.message;
             err.style.display = 'block';
         }
@@ -729,187 +869,148 @@
     };
 
     // ============================================================
-    // RENDER ALL
+    // HOME SCREEN
     // ============================================================
-    function refreshAll() {
-        renderYearSelect();
-        renderCategories();
-        renderSorts();
-        if (selectedPostId) {
-            const stillExists = data.find(p => p.firebaseId === selectedPostId);
-            if (stillExists) renderDetail(selectedPostId);
-            else stangDetaljer();
-        }
+    function renderHomeStats() {
+        const filtered = selectedYear ? data.filter(p => String(p.ar||new Date().getFullYear()) === selectedYear) : data;
+        const groddade = filtered.filter(p => p.groddDatum).length;
+        const utplanterade = filtered.filter(p => p.utplantering).length;
+        const skordade = filtered.filter(p => p.skord).length;
+
+        document.getElementById('homeStats').innerHTML = `
+            <div class="stat-chip">
+                <div class="stat-val">${filtered.length}</div>
+                <div class="stat-lbl">Såddar</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-val">${groddade}</div>
+                <div class="stat-lbl">Grodda</div>
+                <div class="progress-bar"><div class="progress-fill" style="width:${filtered.length ? Math.round(groddade/filtered.length*100) : 0}%"></div></div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-val">${utplanterade}</div>
+                <div class="stat-lbl">Utplanterade</div>
+            </div>
+            <div class="stat-chip">
+                <div class="stat-val">${skordade}</div>
+                <div class="stat-lbl">Skördade</div>
+            </div>`;
+
+        const hour = new Date().getHours();
+        const greeting = hour < 12 ? 'God morgon' : hour < 18 ? 'God eftermiddag' : 'God kväll';
+        document.getElementById('homeGreeting').textContent = greeting;
+        document.getElementById('homeSub').textContent = `${categories.length} växttyper · ${data.length} poster`;
     }
 
-    // ============================================================
-    // YEAR SELECT
-    // ============================================================
-    function renderYearSelect() {
+    function renderYearPills() {
         const years = [...new Set(data.map(p => String(p.ar || new Date().getFullYear())))].sort((a,b) => b-a);
-        const sel = document.getElementById('yearSelect');
-        const cur = sel.value;
-        sel.innerHTML = '<option value="">Alla år</option>' + years.map(y => `<option value="${y}" ${cur===y?'selected':''}>${y}</option>`).join('');
-        if (cur && years.includes(cur)) sel.value = cur;
+        document.getElementById('yearPills').innerHTML =
+            `<div class="pill ${!selectedYear?'active':''}" onclick="valjAr('')">Alla år</div>` +
+            years.map(y => `<div class="pill ${selectedYear===y?'active':''}" onclick="valjAr('${y}')">${y}</div>`).join('');
     }
 
-    window.byttAr = function() {
-        selectedYear = document.getElementById('yearSelect').value;
-        renderSorts();
+    window.valjAr = function(y) {
+        selectedYear = y;
+        renderYearPills();
+        renderCatRow();
+        renderSortList();
+        renderHomeStats();
     };
 
-    // ============================================================
-    // CATEGORIES
-    // ============================================================
-    function renderCategories() {
-        const list = document.getElementById('catList');
-        if (categories.length === 0) {
-            list.innerHTML = `<div style="padding:12px;color:var(--sage);font-size:0.82em;opacity:0.7;">Inga kategorier ännu</div>`;
-            return;
-        }
-
-        list.innerHTML = categories.map(cat => {
-            const count = getFilteredData().filter(p => (p.vaxt||'').trim() === cat).length;
-            return `<div class="cat-item ${selectedCat===cat?'active':''}" onclick="valjKategori('${escAttr(cat)}')">
-                <span class="cat-name">${escHtml(cat)}</span>
-                <span class="cat-count">${count}</span>
-                <button class="cat-delete-btn" onclick="event.stopPropagation();raderaKategori('${escAttr(cat)}')" title="Ta bort kategori">×</button>
-            </div>`;
-        }).join('');
-
-        // Update popup select
-        const sel = document.getElementById('popupKat');
-        if (sel) sel.innerHTML = '<option value="">— Välj befintlig —</option>' + categories.map(c => `<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('');
-    }
-
-    window.valjKategori = function(cat) {
-        selectedCat = cat;
-        document.getElementById('middleTitle').textContent = cat;
-        renderCategories();
-        renderSorts();
-        stangDetaljer();
-    };
-
-    window.visaLaggTillKategori = function() {
-        document.getElementById('newKatName').value = '';
-        document.getElementById('addKatPopup').classList.add('show');
-        setTimeout(() => document.getElementById('newKatName').focus(), 100);
-    };
-
-    window.stangAddKat = function() {
-        document.getElementById('addKatPopup').classList.remove('show');
-    };
-
-    window.sparaKategori = function() {
-        const name = document.getElementById('newKatName').value.trim();
-        if (!name) { alert('Ange ett namn'); return; }
-        if (categories.includes(name)) { alert('Kategorin finns redan'); return; }
-        categories.push(name);
-        saveCategories();
-        stangAddKat();
-        renderCategories();
-        valjKategori(name);
-    };
-
-    window.raderaKategori = function(cat) {
-        const count = data.filter(p => (p.vaxt||'').trim() === cat).length;
-        const msg = count > 0
-            ? `"${cat}" har ${count} poster kopplade. Kategorin tas bara bort från listan, posterna finns kvar. Fortsätt?`
-            : `Ta bort kategorin "${cat}"?`;
-        if (!confirm(msg)) return;
-        categories = categories.filter(c => c !== cat);
-        saveCategories();
-        if (selectedCat === cat) {
-            selectedCat = null;
-            document.getElementById('middleTitle').textContent = 'Välj en växttyp';
-            stangDetaljer();
-        }
-        renderCategories();
-        renderSorts();
-    };
-
-    // ============================================================
-    // SORT LIST
-    // ============================================================
     function getFilteredData() {
-        return data.filter(p => !selectedYear || String(p.ar || new Date().getFullYear()) === selectedYear);
+        return data.filter(p => !selectedYear || String(p.ar||new Date().getFullYear()) === selectedYear);
     }
 
-    function renderSorts() {
-        const container = document.getElementById('sortListContainer');
-        if (!selectedCat) {
-            container.innerHTML = `<div class="empty-state">
-                <span class="big">🌿</span>
-                <h3>Välj en växttyp</h3>
-                <p>Klicka på en kategori i vänsterpanelen</p>
-            </div>`;
-            return;
-        }
+    function renderCatRow() {
+        const filtered = getFilteredData();
+        const row = document.getElementById('catRow');
+        const catIcons = { 'Tomater': '🍅', 'Gurkor': '🥒', 'Paprika': '🫑', 'Sallad': '🥬', 'Örter': '🌿', 'Squash': '🎃', 'Lök': '🧅', 'Morötter': '🥕', 'Blommor': '🌸', 'Frukter': '🍓' };
+        const getIcon = (name) => {
+            for (const [k,v] of Object.entries(catIcons)) { if (name.toLowerCase().includes(k.toLowerCase())) return v; }
+            return '🌱';
+        };
 
-        const posts = getFilteredData().filter(p => (p.vaxt||'').trim() === selectedCat);
+        row.innerHTML = categories.map(cat => {
+            const count = filtered.filter(p => (p.vaxt||'').trim() === cat).length;
+            return `<div class="cat-chip" onclick="goSortList('${escAttr(cat)}')">
+                <span class="cat-icon">${getIcon(cat)}</span>
+                <span class="cat-name">${escHtml(cat)}</span>
+                <span class="cat-n">${count} st</span>
+            </div>`;
+        }).join('') +
+        `<div class="cat-chip cat-chip-add" onclick="visaAddKatSheet()">
+            <span class="cat-icon">＋</span>
+            <span class="cat-name">Ny typ</span>
+        </div>`;
+    }
+
+    function renderSortList() {
+        const container = document.getElementById('sortListContainer');
+        const title = document.getElementById('sortSectionTitle');
+        const posts = getFilteredData().slice(0, 8);
+        title.textContent = selectedYear ? `Såddar ${selectedYear}` : 'Senaste såddar';
 
         if (posts.length === 0) {
-            container.innerHTML = `<div class="empty-state">
-                <span class="big">🌱</span>
-                <h3>Inga sorter${selectedYear ? ' år ' + selectedYear : ''}</h3>
-                <p>Lägg till en ny sådd med ➕ knappen</p>
-            </div>`;
+            container.innerHTML = `<div class="empty"><span class="big">🌱</span><h3>Inga såddar ännu</h3><p>Tryck på ＋ för att lägga till din första</p></div>`;
             return;
         }
-
-        const today = new Date().toISOString().split('T')[0];
-
-        container.innerHTML = posts.map(p => {
-            const badges = [];
-            if (p.groddDatum) badges.push('<span class="badge badge-green">✓ Grodd</span>');
-            if (p.utplantering) badges.push('<span class="badge badge-gold">🌿 Utplanterad</span>');
-            if (p.skord) badges.push('<span class="badge badge-gray">🌾 Skörd</span>');
-            if (p.paminnelse && p.paminnelse >= today) badges.push('<span class="badge badge-remind">🔔 Påminnelse</span>');
-
-            const meta = [];
-            if (p.saddDatum) meta.push('🌱 ' + p.saddDatum);
-            if (p.dagarGrodd) meta.push('⏱ ' + p.dagarGrodd + ' dagar');
-            if (p.grobarhet) meta.push('📊 ' + p.grobarhet);
-
-            return `<div class="sort-card ${selectedPostId===p.firebaseId?'active':''}" onclick="oppnaDetaljer('${p.firebaseId}')">
-                <div class="sort-card-body">
-                    <div class="sort-card-name">${escHtml(p.sort || '(Ingen sort angiven)')}</div>
-                    <div class="sort-card-meta">${meta.join(' · ') || (p.ar ? 'År ' + p.ar : 'Ingen data')}</div>
-                    ${badges.length ? '<div class="sort-card-badges">' + badges.join('') + '</div>' : ''}
-                </div>
-                <span class="sort-arrow">›</span>
-            </div>`;
-        }).join('');
+        container.innerHTML = posts.map(p => buildSortCard(p)).join('');
     }
 
     // ============================================================
-    // DETAIL PANEL
+    // CATEGORY SORT LIST SCREEN
     // ============================================================
-    window.oppnaDetaljer = function(fid) {
-        selectedPostId = fid;
-        renderSorts(); // update active state
-        renderDetail(fid);
-        document.getElementById('panelRight').classList.remove('collapsed');
-    };
+    function renderCatSortList() {
+        const container = document.getElementById('catSortList');
+        if (!selectedCat) return;
+        const posts = getFilteredData().filter(p => (p.vaxt||'').trim() === selectedCat);
+        if (posts.length === 0) {
+            container.innerHTML = `<div class="empty"><span class="big">🌱</span><h3>Inga sorter</h3><p>Tryck på ＋ för att lägga till</p></div>`;
+            return;
+        }
+        container.innerHTML = posts.map(p => buildSortCard(p)).join('');
+    }
 
-    window.stangDetaljer = function() {
-        selectedPostId = null;
-        document.getElementById('panelRight').classList.add('collapsed');
-        renderSorts();
-    };
+    function buildSortCard(p) {
+        const today = new Date().toISOString().split('T')[0];
+        const badges = [];
+        if (p.groddDatum) badges.push('<span class="badge badge-green">✓ Grodd</span>');
+        if (p.utplantering) badges.push('<span class="badge badge-gold">🌿 Utplanterad</span>');
+        if (p.skord) badges.push('<span class="badge badge-gray">🌾 Skörd</span>');
+        if (p.paminnelse && p.paminnelse >= today) badges.push('<span class="badge badge-remind">🔔</span>');
 
+        const meta = [];
+        if (p.vaxt) meta.push(p.vaxt);
+        if (p.saddDatum) meta.push('Såddes ' + p.saddDatum);
+        if (p.dagarGrodd) meta.push(p.dagarGrodd + ' dagar grodd');
+
+        const dotClass = p.skord ? 'gold' : p.groddDatum ? 'green' : '';
+
+        return `<div class="sort-card" onclick="goDetail('${p.firebaseId}')">
+            <div class="sort-card-dot ${dotClass}"></div>
+            <div class="sort-card-body">
+                <div class="sort-card-name">${escHtml(p.sort || '(Ingen sort angiven)')}</div>
+                <div class="sort-card-meta">${meta.join(' · ') || (p.ar ? 'År ' + p.ar : '')}</div>
+                ${badges.length ? '<div class="sort-badges">' + badges.join('') + '</div>' : ''}
+            </div>
+            <span class="sort-arrow">›</span>
+        </div>`;
+    }
+
+    // ============================================================
+    // DETAIL SCREEN
+    // ============================================================
     function renderDetail(fid) {
         const p = data.find(x => x.firebaseId === fid);
         if (!p) return;
 
-        document.getElementById('detailPlantName').textContent = p.vaxt || 'Okänd växt';
-        document.getElementById('detailSortName').textContent = p.sort ? 'Sort: ' + p.sort : 'Ingen sort angiven';
-        document.getElementById('detailDeleteBtn').onclick = () => raderaPost(fid);
-
-        const inp = (falt, typ='text', placeholder='', ro=false) => `
-            <input type="${typ}" class="field-inp" value="${escAttr(p[falt]||'')}"
-                ${ro ? 'readonly' : `onchange="uppdatera('${fid}','${falt}',this.value)"`}
-                placeholder="${placeholder}">`;
+        const inp = (falt, typ='text', placeholder='', ro=false, fullW=false) => `
+            <div class="field-grp${fullW?' full':''}">
+                <label class="field-lbl">${placeholder}</label>
+                <input type="${typ}" class="fi" value="${escAttr(p[falt]||'')}"
+                    ${ro ? 'readonly' : `onchange="uppdatera('${fid}','${falt}',this.value)"`}
+                    placeholder="">
+            </div>`;
 
         const bilder = (p.bilder||[]).map((img,i) => `
             <div class="img-wrap">
@@ -917,33 +1018,41 @@
                 <button onclick="taBortBild('${fid}',${i})">×</button>
             </div>`).join('');
 
-        document.getElementById('detailBody').innerHTML = `
+        document.getElementById('detailContent').innerHTML = `
+            <div class="detail-hero">
+                <div class="detail-plant">${escHtml(p.vaxt||'Okänd växt')}</div>
+                <div class="detail-sort">${p.sort ? 'Sort: ' + escHtml(p.sort) : 'Ingen sort angiven'}</div>
+                <div style="margin-top:14px;display:flex;gap:8px;">
+                    <button class="btn btn-danger btn-sm" onclick="raderaPost('${fid}')">🗑️ Ta bort</button>
+                </div>
+            </div>
+
             <div class="detail-section">
                 <div class="detail-section-title">Grundinfo</div>
                 <div class="fields-grid">
                     <div class="field-grp">
                         <label class="field-lbl">Växt</label>
-                        <input type="text" class="field-inp" value="${escAttr(p.vaxt||'')}" onchange="uppdatera('${fid}','vaxt',this.value)" placeholder="t.ex. Tomat">
+                        <input type="text" class="fi" value="${escAttr(p.vaxt||'')}" onchange="uppdatera('${fid}','vaxt',this.value)" placeholder="t.ex. Tomat">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Sort</label>
-                        <input type="text" class="field-inp" value="${escAttr(p.sort||'')}" onchange="uppdatera('${fid}','sort',this.value)" placeholder="t.ex. Bovictus">
+                        <input type="text" class="fi" value="${escAttr(p.sort||'')}" onchange="uppdatera('${fid}','sort',this.value)" placeholder="t.ex. Bovictus">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Datum sådd</label>
-                        <input type="date" class="field-inp" value="${p.saddDatum||''}" onchange="uppdatera('${fid}','saddDatum',this.value)">
+                        <input type="date" class="fi" value="${p.saddDatum||''}" onchange="uppdatera('${fid}','saddDatum',this.value)">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Antal frön</label>
-                        <input type="number" class="field-inp" value="${escAttr(p.antalFron||'')}" onchange="uppdatera('${fid}','antalFron',this.value)">
+                        <input type="number" class="fi" value="${escAttr(p.antalFron||'')}" onchange="uppdatera('${fid}','antalFron',this.value)">
                     </div>
                     <div class="field-grp full">
                         <label class="field-lbl">Plats</label>
-                        <input type="text" class="field-inp" value="${escAttr(p.plats||'')}" onchange="uppdatera('${fid}','plats',this.value)" placeholder="t.ex. Inne, växthus">
+                        <input type="text" class="fi" value="${escAttr(p.plats||'')}" onchange="uppdatera('${fid}','plats',this.value)" placeholder="t.ex. Inne, växthus">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Odlingsår</label>
-                        <input type="number" class="field-inp" value="${p.ar||new Date().getFullYear()}" onchange="uppdatera('${fid}','ar',this.value)">
+                        <input type="number" class="fi" value="${p.ar||new Date().getFullYear()}" onchange="uppdatera('${fid}','ar',this.value)">
                     </div>
                 </div>
             </div>
@@ -953,19 +1062,19 @@
                 <div class="fields-grid">
                     <div class="field-grp">
                         <label class="field-lbl">Datum grodd</label>
-                        <input type="date" class="field-inp" value="${p.groddDatum||''}" onchange="uppdatera('${fid}','groddDatum',this.value)">
+                        <input type="date" class="fi" value="${p.groddDatum||''}" onchange="uppdatera('${fid}','groddDatum',this.value)">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Dagar till grodd</label>
-                        <input type="number" class="field-inp" value="${p.dagarGrodd||''}" readonly>
+                        <input type="number" class="fi" value="${p.dagarGrodd||''}" readonly>
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Antal grodda</label>
-                        <input type="number" class="field-inp" value="${escAttr(p.antalGrodda||'')}" onchange="uppdatera('${fid}','antalGrodda',this.value)">
+                        <input type="number" class="fi" value="${escAttr(p.antalGrodda||'')}" onchange="uppdatera('${fid}','antalGrodda',this.value)">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Grobarhet %</label>
-                        <input type="text" class="field-inp" value="${escAttr(p.grobarhet||'')}" readonly>
+                        <input type="text" class="fi" value="${escAttr(p.grobarhet||'')}" readonly>
                     </div>
                 </div>
             </div>
@@ -975,23 +1084,23 @@
                 <div class="fields-grid">
                     <div class="field-grp">
                         <label class="field-lbl">Omskolning</label>
-                        <input type="date" class="field-inp" value="${p.omskolning||''}" onchange="uppdatera('${fid}','omskolning',this.value)">
+                        <input type="date" class="fi" value="${p.omskolning||''}" onchange="uppdatera('${fid}','omskolning',this.value)">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Utplantering</label>
-                        <input type="date" class="field-inp" value="${p.utplantering||''}" onchange="uppdatera('${fid}','utplantering',this.value)">
+                        <input type="date" class="fi" value="${p.utplantering||''}" onchange="uppdatera('${fid}','utplantering',this.value)">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Första skörd</label>
-                        <input type="date" class="field-inp" value="${p.skord||''}" onchange="uppdatera('${fid}','skord',this.value)">
+                        <input type="date" class="fi" value="${p.skord||''}" onchange="uppdatera('${fid}','skord',this.value)">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Rek. sådd</label>
-                        <input type="text" class="field-inp" value="${escAttr(p.rekSadd||'')}" onchange="uppdatera('${fid}','rekSadd',this.value)" placeholder="t.ex. Mars-April">
+                        <input type="text" class="fi" value="${escAttr(p.rekSadd||'')}" onchange="uppdatera('${fid}','rekSadd',this.value)" placeholder="t.ex. Mars-April">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Rek. skörd</label>
-                        <input type="text" class="field-inp" value="${escAttr(p.rekSkord||'')}" onchange="uppdatera('${fid}','rekSkord',this.value)" placeholder="t.ex. Juli-Augusti">
+                        <input type="text" class="fi" value="${escAttr(p.rekSkord||'')}" onchange="uppdatera('${fid}','rekSkord',this.value)" placeholder="t.ex. Juli-Aug">
                     </div>
                 </div>
             </div>
@@ -1001,21 +1110,21 @@
                 <div class="fields-grid">
                     <div class="field-grp">
                         <label class="field-lbl">Datum</label>
-                        <input type="date" class="field-inp" value="${p.paminnelse||''}" onchange="uppdatera('${fid}','paminnelse',this.value)">
+                        <input type="date" class="fi" value="${p.paminnelse||''}" onchange="uppdatera('${fid}','paminnelse',this.value)">
                     </div>
                     <div class="field-grp">
                         <label class="field-lbl">Text</label>
-                        <input type="text" class="field-inp" value="${escAttr(p.paminnelseText||'')}" onchange="uppdatera('${fid}','paminnelseText',this.value)" placeholder="t.ex. Dags att plantera ut">
+                        <input type="text" class="fi" value="${escAttr(p.paminnelseText||'')}" onchange="uppdatera('${fid}','paminnelseText',this.value)" placeholder="t.ex. Dags att plantera ut">
                     </div>
                 </div>
             </div>
 
             <div class="detail-section">
                 <div class="detail-section-title">Anteckningar</div>
-                <textarea class="field-inp" onchange="uppdatera('${fid}','anteckningar',this.value)" placeholder="Skriv dina observationer här...">${escHtml(p.anteckningar||'')}</textarea>
+                <textarea class="fi" onchange="uppdatera('${fid}','anteckningar',this.value)" placeholder="Skriv dina observationer...">${escHtml(p.anteckningar||'')}</textarea>
             </div>
 
-            <div class="detail-section">
+            <div class="detail-section" style="padding-bottom:20px;">
                 <div class="detail-section-title">📷 Bilder</div>
                 <div class="img-grid">${bilder}</div>
                 <div class="upload-row">
@@ -1025,6 +1134,96 @@
             </div>
         `;
     }
+
+    // ============================================================
+    // REMINDERS SCREEN
+    // ============================================================
+    function renderReminders() {
+        const idag = new Date(); idag.setHours(0,0,0,0);
+        const list = data.filter(p => p.paminnelse)
+            .map(p => { const d = new Date(p.paminnelse); d.setHours(0,0,0,0); return {...p, dk: Math.ceil((d-idag)/86400000)}; })
+            .filter(p => p.dk >= -7)
+            .sort((a,b) => a.dk - b.dk);
+
+        const el = document.getElementById('remindContainer');
+        if (list.length === 0) {
+            el.innerHTML = `<div class="empty"><span class="big">🔔</span><h3>Inga påminnelser</h3><p>Lägg till påminnelser i en post</p></div>`;
+            return;
+        }
+        el.innerHTML = list.map(p => {
+            const t = p.dk < 0 ? `${Math.abs(p.dk)} dagar sedan` : p.dk === 0 ? 'IDAG' : p.dk === 1 ? 'Imorgon' : `Om ${p.dk} dagar`;
+            const cls = p.dk < 0 ? 'past' : p.dk === 0 ? 'today' : 'soon';
+            return `<div class="remind-card">
+                <span class="remind-icon">🌱</span>
+                <div class="remind-info">
+                    <div class="remind-name">${escHtml(p.vaxt||'')}${p.sort ? ' – ' + escHtml(p.sort) : ''}</div>
+                    <div class="remind-text">${escHtml(p.paminnelseText||'Påminnelse')}</div>
+                    <div class="remind-time ${cls}">${p.paminnelse} · ${t}</div>
+                </div>
+                <button class="btn btn-secondary btn-sm" onclick="taBortPaminnelse('${p.firebaseId}')">✓</button>
+            </div>`;
+        }).join('');
+    }
+
+    // ============================================================
+    // SHEETS
+    // ============================================================
+    window.visaNySaddSheet = function() {
+        document.getElementById('popupAr').value = selectedYear || new Date().getFullYear();
+        document.getElementById('popupSort').value = '';
+        document.getElementById('popupDatum').value = '';
+        document.getElementById('popupNyKat').value = '';
+        const sel = document.getElementById('popupKat');
+        sel.innerHTML = '<option value="">— Välj befintlig —</option>' + categories.map(c => `<option value="${escAttr(c)}">${escHtml(c)}</option>`).join('');
+        if (selectedCat) sel.value = selectedCat;
+        visaSheet('nySaddSheet');
+    };
+
+    window.visaAddKatSheet = function() {
+        document.getElementById('newKatName').value = '';
+        visaSheet('addKatSheet');
+        setTimeout(() => document.getElementById('newKatName').focus(), 200);
+    };
+
+    window.visaSheet = function(id) { document.getElementById(id).classList.add('show'); };
+    window.stangSheet = function(id) { document.getElementById(id).classList.remove('show'); };
+
+    window.sparaKategori = function() {
+        const name = document.getElementById('newKatName').value.trim();
+        if (!name) { alert('Ange ett namn'); return; }
+        if (categories.includes(name)) { alert('Kategorin finns redan'); return; }
+        categories.push(name);
+        saveCategories();
+        stangSheet('addKatSheet');
+        renderCatRow();
+        goSortList(name);
+    };
+
+    window.skapaPost = async function() {
+        if (!db) { alert('Firebase inte anslutet'); return; }
+        const nyKat = document.getElementById('popupNyKat').value.trim();
+        const befintligKat = document.getElementById('popupKat').value;
+        const vaxt = nyKat || befintligKat;
+        if (!vaxt) { alert('Välj eller ange en växttyp'); return; }
+        if (nyKat && !categories.includes(nyKat)) { categories.push(nyKat); saveCategories(); }
+
+        const post = {
+            id: Date.now(), vaxt, sort: document.getElementById('popupSort').value.trim(),
+            saddDatum: document.getElementById('popupDatum').value,
+            antalFron: '', plats: '', groddDatum: '', dagarGrodd: '', antalGrodda: '',
+            grobarhet: '', utplantering: '', skord: '', rekSadd: '', rekSkord: '',
+            omskolning: '', paminnelse: '', paminnelseText: '',
+            ar: parseInt(document.getElementById('popupAr').value) || new Date().getFullYear(),
+            anteckningar: '', bilder: [], skapad: new Date().toISOString()
+        };
+
+        try {
+            const ref = await addDoc(collection(db, 'fron'), post);
+            stangSheet('nySaddSheet');
+            selectedCat = vaxt;
+            goDetail(ref.id);
+        } catch(e) { alert('Fel: ' + e.message); }
+    };
 
     // ============================================================
     // CRUD
@@ -1046,7 +1245,6 @@
             }
         }
         if (falt === 'vaxt') {
-            // Update category if name changed
             const newName = varde.trim();
             if (newName && !categories.includes(newName)) { categories.push(newName); saveCategories(); }
         }
@@ -1061,57 +1259,7 @@
         if (!confirm('Ta bort denna post?')) return;
         try {
             await deleteDoc(doc(db, 'fron', fid));
-            stangDetaljer();
-        } catch(e) { alert('Fel: ' + e.message); }
-    };
-
-    // ============================================================
-    // NEW POST POPUP
-    // ============================================================
-    window.visaNySaddPopup = function() {
-        document.getElementById('popupAr').value = selectedYear || new Date().getFullYear();
-        document.getElementById('popupSort').value = '';
-        document.getElementById('popupDatum').value = '';
-        document.getElementById('popupNyKat').value = '';
-        // Pre-select current category
-        const sel = document.getElementById('popupKat');
-        if (sel && selectedCat) sel.value = selectedCat;
-        document.getElementById('nySaddPopup').classList.add('show');
-    };
-
-    window.stangNySadd = function() {
-        document.getElementById('nySaddPopup').classList.remove('show');
-    };
-
-    window.skapaPost = async function() {
-        if (!db) { alert('Firebase inte anslutet'); return; }
-        const nyKat = document.getElementById('popupNyKat').value.trim();
-        const befintligKat = document.getElementById('popupKat').value;
-        const vaxt = nyKat || befintligKat;
-        if (!vaxt) { alert('Välj eller ange en växttyp'); return; }
-
-        if (nyKat && !categories.includes(nyKat)) {
-            categories.push(nyKat);
-            saveCategories();
-        }
-
-        const post = {
-            id: Date.now(), vaxt, sort: document.getElementById('popupSort').value.trim(),
-            saddDatum: document.getElementById('popupDatum').value,
-            antalFron: '', plats: '', groddDatum: '', dagarGrodd: '', antalGrodda: '',
-            grobarhet: '', utplantering: '', skord: '', rekSadd: '', rekSkord: '',
-            omskolning: '', paminnelse: '', paminnelseText: '',
-            ar: parseInt(document.getElementById('popupAr').value) || new Date().getFullYear(),
-            anteckningar: '', bilder: [], skapad: new Date().toISOString()
-        };
-
-        try {
-            const ref = await addDoc(collection(db, 'fron'), post);
-            stangNySadd();
-            selectedCat = vaxt;
-            selectedPostId = ref.id;
-            renderCategories();
-            document.getElementById('middleTitle').textContent = vaxt;
+            goBack();
         } catch(e) { alert('Fel: ' + e.message); }
     };
 
@@ -1125,13 +1273,9 @@
                 const img = new Image();
                 img.onload = () => {
                     let { width, height } = img;
-                    if (width > maxBredd) {
-                        height = Math.round(height * maxBredd / width);
-                        width = maxBredd;
-                    }
+                    if (width > maxBredd) { height = Math.round(height * maxBredd / width); width = maxBredd; }
                     const canvas = document.createElement('canvas');
-                    canvas.width = width;
-                    canvas.height = height;
+                    canvas.width = width; canvas.height = height;
                     canvas.getContext('2d').drawImage(img, 0, 0, width, height);
                     resolve(canvas.toDataURL('image/jpeg', kvalitet));
                 };
@@ -1146,35 +1290,18 @@
     window.laddaBilder = async function(fid, filer) {
         const post = data.find(p => p.firebaseId === fid);
         if (!post || !db) return;
-
         for (const fil of Array.from(filer)) {
             try {
-                const komprimerad = await komprimeraBild(fil);
-                // Rough size check: base64 ~1.37x raw, warn if still too big
+                let komprimerad = await komprimeraBild(fil);
                 const storlekKB = Math.round(komprimerad.length * 0.75 / 1024);
-                if (storlekKB > 900) {
-                    // Try harder compression
-                    const extra = await komprimeraBild(fil, 800, 0.55);
-                    post.bilder.push(extra);
-                } else {
-                    post.bilder.push(komprimerad);
-                }
-
-                // Check total document size
+                if (storlekKB > 900) komprimerad = await komprimeraBild(fil, 800, 0.55);
+                post.bilder.push(komprimerad);
                 const { firebaseId: _, ...ud } = post;
-                const totalStr = JSON.stringify(ud);
-                const totalKB = Math.round(totalStr.length / 1024);
-                if (totalKB > 900) {
-                    post.bilder.pop();
-                    alert('⚠️ Bilden är för stor för att sparas (dokumentet överstiger 1 MB). Prova en mindre bild.');
-                    continue;
-                }
-
+                const totalKB = Math.round(JSON.stringify(ud).length / 1024);
+                if (totalKB > 900) { post.bilder.pop(); alert('⚠️ Bilden är för stor (>1 MB). Prova en mindre bild.'); continue; }
                 await updateDoc(doc(db, 'fron', fid), ud);
-            } catch(err) {
-                console.error('Fel vid bilduppladdning:', err);
-                alert('❌ Kunde inte ladda upp bilden: ' + err.message);
-            }
+                renderDetail(fid);
+            } catch(err) { alert('❌ Kunde inte ladda upp bilden: ' + err.message); }
         }
     };
 
@@ -1182,56 +1309,28 @@
         const post = data.find(p => p.firebaseId === fid);
         if (!post || !db) return;
         post.bilder.splice(idx, 1);
-        try { const {firebaseId:_,...ud}=post; await updateDoc(doc(db,'fron',fid),ud); } catch(e){}
+        try { const {firebaseId:_,...ud}=post; await updateDoc(doc(db,'fron',fid),ud); renderDetail(fid); } catch(e){}
     };
 
     window.visaBild = function(src) {
         document.getElementById('modalImg').src = src;
         document.getElementById('imgModal').classList.add('show');
     };
-    window.stangModal = function() { document.getElementById('imgModal').classList.remove('show'); };
+    window.stangImgModal = function() { document.getElementById('imgModal').classList.remove('show'); };
 
     // ============================================================
-    // PÅMINNELSER
+    // REMINDERS
     // ============================================================
-    window.visaPaminnelserPanel = function() {
-        const idag = new Date(); idag.setHours(0,0,0,0);
-        const list = data.filter(p => p.paminnelse)
-            .map(p => { const d = new Date(p.paminnelse); d.setHours(0,0,0,0); return {...p, dk: Math.ceil((d-idag)/86400000)}; })
-            .filter(p => p.dk >= -7)
-            .sort((a,b) => a.dk - b.dk);
-
-        const el = document.getElementById('remindList');
-        if (list.length === 0) {
-            el.innerHTML = '<div style="color:var(--sage);font-size:0.85em;padding:4px 0;">Inga aktiva påminnelser.</div>';
-        } else {
-            el.innerHTML = list.map(p => {
-                const t = p.dk<0?`${Math.abs(p.dk)} dagar sedan`:p.dk===0?'IDAG':p.dk===1?'Imorgon':`Om ${p.dk} dagar`;
-                return `<div class="remind-item">
-                    <div class="remind-item-text">
-                        <strong>🌱 ${escHtml(p.vaxt||'')}${p.sort?' – '+escHtml(p.sort):''}</strong>
-                        <span>${escHtml(p.paminnelseText||'Påminnelse')} · ${p.paminnelse} (${t})</span>
-                    </div>
-                    <button class="btn btn-secondary btn-sm" onclick="taBortPaminnelse('${p.firebaseId}')" style="flex-shrink:0;margin-left:10px;">✓ Klar</button>
-                </div>`;
-            }).join('');
-        }
-        document.getElementById('remindBar').classList.add('show');
-    };
-
-    window.stangPaminnelserPanel = function() { document.getElementById('remindBar').classList.remove('show'); };
-
     window.taBortPaminnelse = async function(fid) {
         const post = data.find(p => p.firebaseId === fid);
         if (!post || !db) return;
         post.paminnelse = ''; post.paminnelseText = '';
-        try { const{firebaseId:_,...ud}=post; await updateDoc(doc(db,'fron',fid),ud); visaPaminnelserPanel(); } catch(e){}
+        try { const{firebaseId:_,...ud}=post; await updateDoc(doc(db,'fron',fid),ud); renderReminders(); } catch(e){}
     };
 
-    window.kollaPaminnelserVidStart = function() {
+    function kollaPaminnelserVidStart() {
         const idag = new Date();
-        const ys=idag.getFullYear(), ms=String(idag.getMonth()+1).padStart(2,'0'), ds=String(idag.getDate()).padStart(2,'0');
-        const idagStr = `${ys}-${ms}-${ds}`;
+        const idagStr = idag.toISOString().split('T')[0];
         const key = 'senastVisadPaminnelse';
         if (localStorage.getItem(key) === idagStr) return;
         const today = data.filter(p => p.paminnelse === idagStr);
@@ -1239,20 +1338,20 @@
             visaPaminnelseNotis(today);
             localStorage.setItem(key, idagStr);
         }
-    };
+    }
 
     function visaPaminnelseNotis(lista) {
         const div = document.createElement('div');
         div.className = 'notif';
         div.innerHTML = `
-            <div style="display:flex;justify-content:space-between;align-items:center;">
-                <div class="notif-title">🔔 Påminnelser idag!</div>
-                <button onclick="this.closest('.notif').remove()" style="background:rgba(255,255,255,0.1);border:none;color:var(--mist);width:24px;height:24px;border-radius:50%;cursor:pointer;">×</button>
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+                <div style="font-weight:600;color:var(--cream);">🔔 Påminnelser idag!</div>
+                <button onclick="this.closest('.notif').remove()" style="background:rgba(255,255,255,0.1);border:none;color:var(--mist);width:26px;height:26px;border-radius:50%;cursor:pointer;">×</button>
             </div>
-            ${lista.map(p=>`<div class="notif-item">🌱 <strong>${escHtml(p.vaxt||'')}${p.sort?' – '+escHtml(p.sort):''}</strong><br><span style="color:var(--sage);font-size:0.9em;">${escHtml(p.paminnelseText||'Påminnelse')}</span></div>`).join('')}
-            <div class="notif-actions">
-                <button class="notif-btn notif-primary" onclick="visaPaminnelserPanel();this.closest('.notif').remove();">Visa alla</button>
-                <button class="notif-btn notif-close" onclick="this.closest('.notif').remove();">Stäng</button>
+            ${lista.map(p=>`<div style="background:rgba(200,218,168,0.07);border-radius:8px;padding:8px 10px;margin-bottom:5px;font-size:0.85em;">🌱 <strong>${escHtml(p.vaxt||'')}${p.sort?' – '+escHtml(p.sort):''}</strong><br><span style="color:var(--sage);">${escHtml(p.paminnelseText||'Påminnelse')}</span></div>`).join('')}
+            <div style="display:flex;gap:8px;margin-top:10px;">
+                <button onclick="navTo('reminders');this.closest('.notif').remove();" style="flex:1;padding:9px;background:var(--leaf);color:white;border:none;border-radius:8px;cursor:pointer;font-size:0.84em;font-weight:600;">Visa alla</button>
+                <button onclick="this.closest('.notif').remove();" style="flex:1;padding:9px;background:rgba(200,218,168,0.12);color:var(--mist);border:none;border-radius:8px;cursor:pointer;font-size:0.84em;">Stäng</button>
             </div>`;
         document.body.appendChild(div);
         setTimeout(() => div.remove(), 12000);
@@ -1342,17 +1441,13 @@
     // ============================================================
     // QR
     // ============================================================
-    window.visaQRSetup = async function() {
-        const config={apiKey:document.getElementById('apiKey').value.trim(),authDomain:document.getElementById('authDomain').value.trim(),projectId:document.getElementById('projectId').value.trim(),storageBucket:document.getElementById('storageBucket').value.trim(),messagingSenderId:document.getElementById('messagingSenderId').value.trim(),appId:document.getElementById('appId').value.trim()};
-        if(!config.apiKey||!config.projectId){alert('Fyll i konfigurationen först');return;}
-        await QRCode.toCanvas(document.getElementById('qrCanvas'),window.location.origin+window.location.pathname+'#config='+btoa(JSON.stringify(config)),{width:220,margin:2,color:{dark:'#2d5016',light:'#f0ebe0'}});
-        document.getElementById('qrSetup').style.display='block';
-    };
-
     window.visaQRInloggad = async function() {
-        const c=localStorage.getItem('firebaseConfig'); if(!c)return;
-        await QRCode.toCanvas(document.getElementById('qrCanvasInloggad'),window.location.origin+window.location.pathname+'#config='+btoa(c),{width:200,margin:2,color:{dark:'#2d5016',light:'#f0ebe0'}});
-        document.getElementById('qrInloggad').style.display='block';
+        const c = localStorage.getItem('firebaseConfig'); if(!c)return;
+        const el = document.getElementById('qrInloggad');
+        el.style.display = el.style.display === 'none' ? 'block' : 'none';
+        if (el.style.display === 'block') {
+            await QRCode.toCanvas(document.getElementById('qrCanvasInloggad'), window.location.origin+window.location.pathname+'#config='+btoa(c), {width:200,margin:2,color:{dark:'#2d5016',light:'#f0ebe0'}});
+        }
     };
 
     // ============================================================
@@ -1374,7 +1469,6 @@
             window.location.hash = '';
             ['apiKey','authDomain','projectId','storageBucket','messagingSenderId','appId'].forEach(k=>{const el=document.getElementById(k);if(el)el.value=config[k]||'';});
             initFirebase(config);
-            alert('✅ Konfiguration mottagen! Logga nu in.');
         } catch(e) { alert('Ogiltig QR-kod'); }
     }
 
@@ -1386,7 +1480,6 @@
             initFirebase(config);
         } catch(e) { kollaQRConfig(); }
     } else { kollaQRConfig(); }
-
 </script>
 </body>
 </html>
