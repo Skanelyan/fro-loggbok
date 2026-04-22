@@ -924,7 +924,7 @@
     function renderCatRow() {
         const filtered = getFilteredData();
         const row = document.getElementById('catRow');
-        const catIcons = { 'Tomater': '🍅', 'Gurkor': '🥒', 'Paprika': '🫑', 'Sallad': '🥬', 'Örter': '🌿', 'Squash': '🎃', 'Lök': '🧅', 'Morötter': '🥕', 'Blommor': '🌸', 'Frukter': '🍓' };
+        const catIcons = { 'Tomat': '🍅','Tomater': '🍅', 'Gurka': '🥒','Gurkor': '🥒', 'Paprika': '🫑', 'Sallad': '🥬', 'Örter': '🌿', 'Squash': '🎃', 'Lök': '🧅', 'Morötter': '🥕', 'Blommor': '🌸', 'Frukter': '🍓' };
         const getIcon = (name) => {
             for (const [k,v] of Object.entries(catIcons)) { if (name.toLowerCase().includes(k.toLowerCase())) return v; }
             return '🌱';
