@@ -678,8 +678,18 @@
                 <input type="text" class="fi" id="newKatName" placeholder="t.ex. Tomater, Gurkor, Örter..." onkeypress="if(event.key==='Enter')sparaKategori()">
             </div>
         </div>
-        <!-- Inline emoji picker (hidden by default) -->
-        <div id="emojiPickerNy" style="display:none;margin-top:10px;max-height:220px;overflow-y:auto;"></div>
+        <!-- Custom emoji input (always visible) -->
+        <div id="emojiPickerNyWrap" style="display:none;">
+            <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;">
+                <input type="text" id="customEmojiInputNy" placeholder="Klistra in valfri emoji..." maxlength="4"
+                    style="flex:1;padding:11px 13px;background:rgba(200,218,168,0.07);border:1.5px solid var(--border);border-radius:10px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:1.3em;">
+                <button onclick="valjCustomEmojiNy()"
+                    style="padding:11px 14px;background:linear-gradient(135deg,var(--leaf),var(--moss));color:white;border:none;border-radius:10px;cursor:pointer;font-size:0.88em;font-weight:600;white-space:nowrap;">Välj</button>
+            </div>
+            <div style="height:1px;background:var(--border);margin-bottom:10px;"></div>
+            <!-- Scrollable emoji grid -->
+            <div id="emojiPickerNy" style="max-height:200px;overflow-y:auto;"></div>
+        </div>
         <div class="sheet-actions">
             <button class="btn btn-secondary" onclick="stangSheet('addKatSheet')" style="flex:1;">Avbryt</button>
             <button class="btn btn-primary" onclick="sparaKategori()" style="flex:2;">✅ Skapa</button>
@@ -694,7 +704,15 @@
         <div class="sheet-title">Välj emoji</div>
         <div class="sheet-sub">för <strong id="emojiSheetCatName"></strong></div>
         <input type="hidden" id="emojiSheetCatNameData">
-        <div id="emojiPickerGrid" style="max-height:55vh;overflow-y:auto;margin-top:4px;"></div>
+        <!-- Custom emoji input always visible at top -->
+        <div style="display:flex;gap:8px;align-items:center;margin-bottom:10px;margin-top:4px;">
+            <input type="text" id="customEmojiInputSheet" placeholder="Klistra in valfri emoji..." maxlength="4"
+                style="flex:1;padding:11px 13px;background:rgba(200,218,168,0.07);border:1.5px solid var(--border);border-radius:10px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:1.3em;">
+            <button onclick="valjCustomEmojiSheet()"
+                style="padding:11px 14px;background:linear-gradient(135deg,var(--leaf),var(--moss));color:white;border:none;border-radius:10px;cursor:pointer;font-size:0.88em;font-weight:600;white-space:nowrap;">Välj</button>
+        </div>
+        <div style="height:1px;background:var(--border);margin-bottom:10px;"></div>
+        <div id="emojiPickerGrid" style="max-height:45vh;overflow-y:auto;"></div>
         <div class="sheet-actions">
             <button class="btn btn-secondary btn-full" onclick="stangSheet('emojiSheet')">Avbryt</button>
         </div>
@@ -1259,53 +1277,51 @@
     };
 
     window.visaEmojiPickerNy = function() {
-        const picker = document.getElementById('emojiPickerNy');
-        if (picker.style.display === 'none') {
-            renderEmojiPicker('emojiPickerNy', 'valjEmojiNy');
-            picker.style.display = 'block';
+        const wrap = document.getElementById('emojiPickerNyWrap');
+        if (wrap.style.display === 'none') {
+            renderEmojiGrid('emojiPickerNy', 'valjEmojiNy');
+            wrap.style.display = 'block';
         } else {
-            picker.style.display = 'none';
+            wrap.style.display = 'none';
         }
     };
 
     window.visaEmojiSheet = function(catName) {
         document.getElementById('emojiSheetCatName').textContent = catName;
         document.getElementById('emojiSheetCatNameData').value = catName;
-        renderEmojiPicker('emojiPickerGrid', 'valjEmojiSheet');
+        document.getElementById('customEmojiInputSheet').value = '';
+        renderEmojiGrid('emojiPickerGrid', 'valjEmojiSheet');
         visaSheet('emojiSheet');
     };
 
-    function renderEmojiPicker(containerId, onSelectFn) {
+    function renderEmojiGrid(containerId, onSelectFn) {
         const container = document.getElementById(containerId);
-        container.innerHTML = `
-            <div style="margin-bottom:14px;">
-                <div style="font-size:0.7em;font-weight:600;color:var(--sage);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">Skriv valfri emoji</div>
-                <div style="display:flex;gap:8px;align-items:center;">
-                    <input type="text" id="customEmojiInput_${containerId}" placeholder="Klistra in eller skriv emoji..." maxlength="4"
-                        style="flex:1;padding:11px 13px;background:rgba(200,218,168,0.07);border:1.5px solid var(--border);border-radius:10px;color:var(--cream);font-family:'DM Sans',sans-serif;font-size:1.2em;">
-                    <button onclick="valjCustomEmoji('${containerId}','${onSelectFn}')"
-                        style="padding:11px 16px;background:linear-gradient(135deg,var(--leaf),var(--moss));color:white;border:none;border-radius:10px;cursor:pointer;font-size:0.9em;font-weight:600;white-space:nowrap;">Välj</button>
-                </div>
-            </div>
-            <div style="height:1px;background:var(--border);margin-bottom:12px;"></div>
-            ${EMOJI_GROUPS.map(g => `
+        container.innerHTML = EMOJI_GROUPS.map(g => `
             <div style="margin-bottom:12px;">
                 <div style="font-size:0.7em;font-weight:600;color:var(--sage);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:6px;">${g.label}</div>
                 <div style="display:flex;flex-wrap:wrap;gap:4px;">
                     ${g.emojis.map(e => `<button onclick="${onSelectFn}('${e}')" style="background:rgba(200,218,168,0.07);border:1.5px solid var(--border);border-radius:8px;width:42px;height:42px;font-size:1.35em;cursor:pointer;display:flex;align-items:center;justify-content:center;">${e}</button>`).join('')}
                 </div>
-            </div>`).join('')}`;
+            </div>`).join('');
     }
 
-    window.valjCustomEmoji = function(containerId, onSelectFn) {
-        const val = document.getElementById('customEmojiInput_' + containerId).value.trim();
+    window.valjCustomEmojiNy = function() {
+        const val = document.getElementById('customEmojiInputNy').value.trim();
         if (!val) return;
-        window[onSelectFn](val);
+        valjEmojiNy(val);
+        document.getElementById('customEmojiInputNy').value = '';
+    };
+
+    window.valjCustomEmojiSheet = function() {
+        const val = document.getElementById('customEmojiInputSheet').value.trim();
+        if (!val) return;
+        valjEmojiSheet(val);
+        document.getElementById('customEmojiInputSheet').value = '';
     };
 
     window.valjEmojiNy = function(emoji) {
         document.getElementById('newKatEmoji').textContent = emoji;
-        document.getElementById('emojiPickerNy').style.display = 'none';
+        document.getElementById('emojiPickerNyWrap').style.display = 'none';
     };
 
     window.valjEmojiSheet = function(emoji) {
