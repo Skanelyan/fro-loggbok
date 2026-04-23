@@ -793,7 +793,8 @@
         document.getElementById('mainTopbar').style.display = 'flex';
         const catObj = categories.find(c => c.name === cat);
         const icon = catObj ? catObj.emoji : '🌱';
-        document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack2()">‹</span> ${icon} ${escHtml(cat)}`;
+        document.getElementById('topbarTitle').innerHTML =
+            `<span style="color:var(--sage);cursor:pointer;padding-right:4px;" onclick="goBack2()">‹</span> ${icon} ${escHtml(cat)} <button onclick="visaEmojiSheet('${escAttr(cat)}')" style="background:rgba(200,218,168,0.1);border:1px solid var(--border);color:var(--sage);border-radius:8px;padding:3px 9px;font-size:0.75em;cursor:pointer;margin-left:6px;vertical-align:middle;">✏️ Emoji</button>`;
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('nav-home').classList.add('active');
         document.getElementById('fabBtn').classList.remove('hidden');
@@ -818,7 +819,8 @@
             document.getElementById('screenSortList').classList.add('active');
             const catObj = categories.find(c => c.name === selectedCat);
             const icon = catObj ? catObj.emoji : '🌱';
-            document.getElementById('topbarTitle').innerHTML = `<span style="color:var(--sage);cursor:pointer;" onclick="goBack2()">‹</span> ${icon} ${escHtml(selectedCat)}`;
+            document.getElementById('topbarTitle').innerHTML =
+                `<span style="color:var(--sage);cursor:pointer;padding-right:4px;" onclick="goBack2()">‹</span> ${icon} ${escHtml(selectedCat)} <button onclick="visaEmojiSheet('${escAttr(selectedCat)}')" style="background:rgba(200,218,168,0.1);border:1px solid var(--border);color:var(--sage);border-radius:8px;padding:3px 9px;font-size:0.75em;cursor:pointer;margin-left:6px;vertical-align:middle;">✏️ Emoji</button>`;
             document.getElementById('fabBtn').classList.remove('hidden');
             renderCatSortList();
         } else {
@@ -1023,7 +1025,7 @@
         row.innerHTML = categories.map(cat => {
             const count = filtered.filter(p => (p.vaxt||'').trim() === cat.name).length;
             return `<div class="cat-chip" onclick="goSortList('${escAttr(cat.name)}')">
-                <span class="cat-icon" onclick="event.stopPropagation();visaEmojiSheet('${escAttr(cat.name)}')" title="Ändra emoji">${cat.emoji||'🌱'}</span>
+                <span class="cat-icon">${cat.emoji||'🌱'}</span>
                 <span class="cat-name">${escHtml(cat.name)}</span>
                 <span class="cat-n">${count} st</span>
             </div>`;
