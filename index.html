@@ -444,7 +444,11 @@
             flex: 1; min-width: 80px;
             background: var(--card-bg); border: 1.5px solid var(--border);
             border-radius: 14px; padding: 12px 10px; text-align: center;
+            cursor: pointer; transition: all 0.18s;
         }
+        .stat-chip:active { transform: scale(0.96); }
+        .stat-chip-active { background: rgba(122,170,92,0.18); border-color: var(--sage); }
+        .stat-chip-active .stat-val { color: var(--sage); }
         .stat-chip .stat-val { font-size: 1.4em; font-weight: 700; color: var(--cream); }
         .stat-chip .stat-lbl { font-size: 0.68em; color: var(--sage); text-transform: uppercase; letter-spacing: 0.06em; margin-top: 2px; }
 
@@ -791,10 +795,7 @@
         document.getElementById('screenHome').classList.remove('active');
         document.getElementById('screenSortList').classList.add('active');
         document.getElementById('mainTopbar').style.display = 'flex';
-        const catObj = categories.find(c => c.name === cat);
-        const icon = catObj ? catObj.emoji : '🌱';
-        document.getElementById('topbarTitle').innerHTML =
-            `<span style="color:var(--sage);cursor:pointer;padding-right:4px;" onclick="goBack2()">‹</span> ${icon} ${escHtml(cat)} <button onclick="visaEmojiSheet('${escAttr(cat)}')" style="background:rgba(200,218,168,0.1);border:1px solid var(--border);color:var(--sage);border-radius:8px;padding:3px 9px;font-size:0.75em;cursor:pointer;margin-left:6px;vertical-align:middle;">✏️ Emoji</button>`;
+        setSortListTopbar(cat);
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
         document.getElementById('nav-home').classList.add('active');
         document.getElementById('fabBtn').classList.remove('hidden');
@@ -817,10 +818,7 @@
         document.getElementById('screenDetail').classList.remove('active');
         if (selectedCat) {
             document.getElementById('screenSortList').classList.add('active');
-            const catObj = categories.find(c => c.name === selectedCat);
-            const icon = catObj ? catObj.emoji : '🌱';
-            document.getElementById('topbarTitle').innerHTML =
-                `<span style="color:var(--sage);cursor:pointer;padding-right:4px;" onclick="goBack2()">‹</span> ${icon} ${escHtml(selectedCat)} <button onclick="visaEmojiSheet('${escAttr(selectedCat)}')" style="background:rgba(200,218,168,0.1);border:1px solid var(--border);color:var(--sage);border-radius:8px;padding:3px 9px;font-size:0.75em;cursor:pointer;margin-left:6px;vertical-align:middle;">✏️ Emoji</button>`;
+            setSortListTopbar(selectedCat);
             document.getElementById('fabBtn').classList.remove('hidden');
             renderCatSortList();
         } else {
@@ -968,35 +966,66 @@
     // ============================================================
     // HOME SCREEN
     // ============================================================
+    let activeStatFilter = ''; // '', 'grodd', 'utplanterad', 'skord'
+
     function renderHomeStats() {
         const filtered = selectedYear ? data.filter(p => String(p.ar||new Date().getFullYear()) === selectedYear) : data;
         const groddade = filtered.filter(p => p.groddDatum).length;
         const utplanterade = filtered.filter(p => p.utplantering).length;
         const skordade = filtered.filter(p => p.skord).length;
 
-        document.getElementById('homeStats').innerHTML = `
-            <div class="stat-chip">
-                <div class="stat-val">${filtered.length}</div>
-                <div class="stat-lbl">Såddar</div>
-            </div>
-            <div class="stat-chip">
-                <div class="stat-val">${groddade}</div>
-                <div class="stat-lbl">Grodda</div>
-                <div class="progress-bar"><div class="progress-fill" style="width:${filtered.length ? Math.round(groddade/filtered.length*100) : 0}%"></div></div>
-            </div>
-            <div class="stat-chip">
-                <div class="stat-val">${utplanterade}</div>
-                <div class="stat-lbl">Utplanterade</div>
-            </div>
-            <div class="stat-chip">
-                <div class="stat-val">${skordade}</div>
-                <div class="stat-lbl">Skördade</div>
+        const chip = (key, val, lbl, progress) => `
+            <div class="stat-chip ${activeStatFilter===key?'stat-chip-active':''}" onclick="valjStatFilter('${key}')">
+                <div class="stat-val">${val}</div>
+                <div class="stat-lbl">${lbl}</div>
+                ${progress ? `<div class="progress-bar"><div class="progress-fill" style="width:${filtered.length ? Math.round(val/filtered.length*100) : 0}%"></div></div>` : ''}
             </div>`;
+
+        document.getElementById('homeStats').innerHTML =
+            chip('', filtered.length, 'Alla såddar', false) +
+            chip('grodd', groddade, 'Grodda', true) +
+            chip('utplanterad', utplanterade, 'Utplanterade', false) +
+            chip('skord', skordade, 'Skördade', false);
 
         const hour = new Date().getHours();
         const greeting = hour < 12 ? 'God morgon' : hour < 18 ? 'God eftermiddag' : 'God kväll';
         document.getElementById('homeGreeting').textContent = greeting;
         document.getElementById('homeSub').textContent = `${categories.length} växttyper · ${data.length} poster`;
+    }
+
+    window.valjStatFilter = function(key) {
+        activeStatFilter = key;
+        renderHomeStats();
+        renderCatRow();
+        renderStatFilterList();
+    };
+
+    function getFilteredData() {
+        let d = data.filter(p => !selectedYear || String(p.ar||new Date().getFullYear()) === selectedYear);
+        if (activeStatFilter === 'grodd') d = d.filter(p => p.groddDatum);
+        else if (activeStatFilter === 'utplanterad') d = d.filter(p => p.utplantering);
+        else if (activeStatFilter === 'skord') d = d.filter(p => p.skord);
+        return d;
+    }
+
+    function renderStatFilterList() {
+        const container = document.getElementById('sortListContainer');
+        const title = document.getElementById('sortSectionTitle');
+
+        if (!activeStatFilter) {
+            renderSortList();
+            return;
+        }
+
+        const labels = { grodd: 'Grodda', utplanterad: 'Utplanterade', skord: 'Skördade' };
+        const posts = getFilteredData();
+        title.innerHTML = `${labels[activeStatFilter]} <span style="color:var(--sage);font-size:0.85em;font-weight:400;">${posts.length} st</span> <button onclick="valjStatFilter('')" style="float:right;background:rgba(200,218,168,0.1);border:1px solid var(--border);color:var(--sage);border-radius:6px;padding:2px 9px;font-size:0.78em;cursor:pointer;">✕ Rensa</button>`;
+
+        if (posts.length === 0) {
+            container.innerHTML = `<div class="empty"><span class="big">🌱</span><h3>Inga poster</h3><p>Inga såddar matchar filtret</p></div>`;
+            return;
+        }
+        container.innerHTML = posts.map(p => buildSortCard(p)).join('');
     }
 
     function renderYearPills() {
@@ -1010,13 +1039,9 @@
         selectedYear = y;
         renderYearPills();
         renderCatRow();
-        renderSortList();
+        activeStatFilter ? renderStatFilterList() : renderSortList();
         renderHomeStats();
     };
-
-    function getFilteredData() {
-        return data.filter(p => !selectedYear || String(p.ar||new Date().getFullYear()) === selectedYear);
-    }
 
     function renderCatRow() {
         const filtered = getFilteredData();
@@ -1326,10 +1351,26 @@
         document.getElementById('emojiPickerNyWrap').style.display = 'none';
     };
 
+    function setSortListTopbar(catName) {
+        const catObj = categories.find(c => c.name === catName);
+        const icon = catObj ? catObj.emoji : '🌱';
+        document.getElementById('topbarTitle').innerHTML =
+            `<span style="color:var(--sage);cursor:pointer;padding-right:4px;" onclick="goBack2()">‹</span> <span id="topbarCatIcon">${icon}</span> ${escHtml(catName)} <button onclick="visaEmojiSheet('${escAttr(catName)}')" style="background:rgba(200,218,168,0.1);border:1px solid var(--border);color:var(--sage);border-radius:8px;padding:3px 9px;font-size:0.75em;cursor:pointer;margin-left:6px;vertical-align:middle;">✏️ Emoji</button>`;
+    }
+
     window.valjEmojiSheet = function(emoji) {
         const catName = document.getElementById('emojiSheetCatNameData').value;
         const cat = categories.find(c => c.name === catName);
-        if (cat) { cat.emoji = emoji; saveCategories(); renderCatRow(); }
+        if (cat) {
+            cat.emoji = emoji;
+            saveCategories();
+            renderCatRow();
+            // Update topbar icon immediately if viewing this category
+            if (selectedCat === catName) {
+                const iconEl = document.getElementById('topbarCatIcon');
+                if (iconEl) iconEl.textContent = emoji;
+            }
+        }
         stangSheet('emojiSheet');
     };
     window.visaSheet = function(id) { document.getElementById(id).classList.add('show'); };
